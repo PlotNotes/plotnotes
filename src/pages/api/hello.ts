@@ -1,13 +1,25 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next'
+import { OpenAIApi, Configuration, ChatCompletionRequestMessageRoleEnum } from "openai";
 
-type Data = {
-  name: string
-}
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_KEY,
+});
 
-export default function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
-  res.status(200).json({ name: 'John Doe' })
+export default async function handler(req: any, res: any) {
+  const openai = new OpenAIApi(configuration);
+  const max_tokens = 4096;
+  let messages = [];
+  let content = `Write a story about ${req.body.prompt}, and use every remaining token you can`
+
+  messages.push({
+      "role": ChatCompletionRequestMessageRoleEnum.User,
+      "content": content
+  })
+
+  const completion = await openai.createChatCompletion({ 
+      model: "gpt-3.5-turbo",
+      messages,
+      max_tokens: max_tokens - content.length,
+  });
+
+  res.status(200).send({response: completion.data.choices[0].message!.content.trim()});
 }
