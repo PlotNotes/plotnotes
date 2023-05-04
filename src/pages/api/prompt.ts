@@ -30,6 +30,7 @@ export function constructPrompt(req: any) {
 export async function getStory(req: any) {
   const openai = getOpenAIClient();
   const prompt = constructPrompt(req);
+
   const completion = await openai.createChatCompletion(prompt);
   return completion.data.choices[0].message!.content.trim();
 }

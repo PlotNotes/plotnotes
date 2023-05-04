@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Box, PageLayout, Heading, Textarea, Button, ThemeProvider, theme } from '@primer/react';
+import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, theme, Tooltip } from '@primer/react';
 import deepmerge from 'deepmerge';
 import Head from 'next/head'
 import Link from 'next/link'
+import Image from 'next/image'
 
 // Create a custom theme that includes the primer theme
 const myTheme = deepmerge(theme, {
@@ -54,6 +55,15 @@ export default function Prompt() {
             <title>PlotNotes</title>
             <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
         </Head>
+        <Header>
+            <Header.Item>
+                <Link href="/">
+                    <Tooltip aria-label="Home" direction="e" noDelay >
+                        <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
+                    </Tooltip>
+                </Link>
+            </Header.Item>
+        </Header>
         <Box
             display="flex"
             flexDirection="column"
@@ -64,13 +74,13 @@ export default function Prompt() {
                 display="flex"
                 flexDirection={{ base: 'column', md: 'row' }}
                 alignItems={{ base: 'center', md: 'flex-start' }}
-                justifyContent="center"
-                mt={{ base: 0, md: 4 }}
-            >
+                justifyContent="flex-start"
+                mt={{ base: 4, md: 4 }}>
+
                 <Box bg="gray.2" p={4} borderRadius={2} mr={{ md: 6 }}>
                 <Heading fontSize={6} textAlign="center">
                     Write a story about....
-                </Heading>
+                </Heading>                
                 <Textarea
                     block
                     value={prompt}
@@ -95,16 +105,16 @@ export default function Prompt() {
                     flexDirection="column"
                     justifyContent="center"
                     alignItems="center">
-                <Heading fontSize={6} mb={4}>
-                    Story
-                </Heading>
+                 <Box display="flex" flexDirection="row" alignItems="center" mb={2}>
+                    <Heading sx={{paddingRight: 5}} fontSize={6} mb={4}>
+                        Story
+                    </Heading>
+                    <Button onClick={() => navigator.clipboard.writeText(story)} >
+                        Copy
+                    </Button>
+                </Box>
                 <Textarea disabled value={story} cols={60} rows={10} />
                 </Box>
-            </Box>
-            <Box display="flex" justifyContent="center" mt={4}>
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                <Link href="/">Home</Link>
-                </button>
             </Box>
         </Box>
     </div>
