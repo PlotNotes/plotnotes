@@ -40,7 +40,6 @@ export default function Prompt() {
         let newStory = await response.json();
         newStory = newStory.response.split('response: ')[0];
         setStory(newStory);
-        console.log('Response: ', story);
     } catch(err) {
         console.log('Error: ', err);
     }
@@ -50,59 +49,64 @@ export default function Prompt() {
   // The text area has placeholder text that reads "Once upon a time...."
   // On the right side of the text area is an area where the results of the users prompt will be displayed
   return (  
-    <Box
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-        alignItems="center"
-        bg="gray.50">
+    <div>
+        <Head>
+            <title>PlotNotes</title>
+            <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        </Head>
         <Box
             display="flex"
-            flexDirection={{ base: 'column', md: 'row' }}
-            alignItems={{ base: 'center', md: 'flex-start' }}
+            flexDirection="column"
             justifyContent="center"
-            mt={{ base: 0, md: 4 }}
-        >
-            <Box bg="gray.2" p={4} borderRadius={2} mr={{ md: 6 }}>
-            <Heading fontSize={6} textAlign="center">
-                Write a story about....
-            </Heading>
-            <Textarea
-                block
-                value={prompt}
-                placeholder="Once upon a time..."
-                onChange={handleChange}
-                onKeyDown={(ev) => {
-                if (ev.key === 'Enter') {
-                    handleSubmit(ev);
-                }
-                }}
-            />
-            <Button type="submit" onClick={handleSubmit}>
-                Submit
-            </Button>
-            </Box>
+            alignItems="center"
+            bg="gray.50">
             <Box
-                bg="gray.2"
-                p={4}
-                borderRadius={2}
-                mt={{ base: -2, md: 0 }}
-                textAlign="center"
                 display="flex"
-                flexDirection="column"
+                flexDirection={{ base: 'column', md: 'row' }}
+                alignItems={{ base: 'center', md: 'flex-start' }}
                 justifyContent="center"
-                alignItems="center">
-            <Heading fontSize={6} mb={4}>
-                Story
-            </Heading>
-            <Textarea disabled value={story} cols={60} rows={10} />
+                mt={{ base: 0, md: 4 }}
+            >
+                <Box bg="gray.2" p={4} borderRadius={2} mr={{ md: 6 }}>
+                <Heading fontSize={6} textAlign="center">
+                    Write a story about....
+                </Heading>
+                <Textarea
+                    block
+                    value={prompt}
+                    onChange={handleChange}
+                    onKeyDown={(ev) => {
+                    if (ev.key === 'Enter') {
+                        handleSubmit(ev);
+                    }
+                    }}
+                />
+                <Button type="submit" onClick={handleSubmit}>
+                    Submit
+                </Button>
+                </Box>
+                <Box
+                    bg="gray.2"
+                    p={4}
+                    borderRadius={2}
+                    mt={{ base: -2, md: 0 }}
+                    textAlign="center"
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center">
+                <Heading fontSize={6} mb={4}>
+                    Story
+                </Heading>
+                <Textarea disabled value={story} cols={60} rows={10} />
+                </Box>
+            </Box>
+            <Box display="flex" justifyContent="center" mt={4}>
+                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <Link href="/">Home</Link>
+                </button>
             </Box>
         </Box>
-        <Box display="flex" justifyContent="center" mt={4}>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            <Link href="/">Home</Link>
-            </button>
-        </Box>
-    </Box>
+    </div>
   );
 }

@@ -1,11 +1,16 @@
 import { OpenAIApi, Configuration, ChatCompletionRequestMessageRoleEnum } from "openai";
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_KEY,
-});
+export function getOpenAIConfiguration() {
+  return new Configuration({
+    apiKey: process.env.OPENAI_KEY,
+  }); 
+}
 
-export default async function handler(req: any, res: any) {
-  const openai = new OpenAIApi(configuration);
+export function getOpenAIClient() {
+  return new OpenAIApi(getOpenAIConfiguration());
+}
+
+export function constructPrompt(req: any) {
   const max_tokens = 4096;
   let messages = [];
   let content = `Write a story about ${req.body.prompt}, and use every remaining token you can`
@@ -15,11 +20,21 @@ export default async function handler(req: any, res: any) {
       "content": content
   })
 
-  const completion = await openai.createChatCompletion({ 
-      model: "gpt-3.5-turbo",
-      messages,
-      max_tokens: max_tokens - content.length,
-  });
+  return {
+    model: "gpt-3.5-turbo",
+    messages, 
+    max_tokens: max_tokens - content.length,
+  }; 
+}
 
-  res.status(200).send({response: completion.data.choices[0].message!.content.trim()});
+export async function getStory(req: any) {
+  const openai = getOpenAIClient();
+  const prompt = constructPrompt(req);
+  const completion = await openai.createChatCompletion(prompt);
+  return completion.data.choices[0].message!.content.trim();
+}
+
+export default async function handler(req: any, res: any) {
+  const story = await getStory(req);
+  res.status(200).send({response: story});
 }
