@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   // Returns the home page of PlotNotes with a welcome message and displaying the logo above it
-  // The logo is inside of a folder called images inside the public folder  
+  // Adds a login button that redirects to the login page, located on the top right of the page
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <Head>
@@ -15,10 +15,10 @@ export default function Home() {
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
       </Head>
       <Image
-        src="/images/PlotNotes.png"
+        src="/images/PlotNotesLogo.png"
         alt="PlotNotes Logo"
-        width={200}
-        height={200}
+        width={600}
+        height={600}
       />
       <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
         <h1 className="font-inter text-6xl font-bold">
