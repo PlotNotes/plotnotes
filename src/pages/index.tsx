@@ -6,12 +6,12 @@ const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   // Returns the home page of PlotNotes with a welcome message and displaying the logo above it
-  // Adds a button that sends the user to the PromptPage to start writing
+  // Adds a login button that redirects to the login page, located on the top right of the page
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <Head>
         <title>PlotNotes</title>
-        <link rel="icon" href="/images/PlotNotes.png" />
+        <link rel="icon" href="/favicon.ico" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
       </Head>
       <Image
