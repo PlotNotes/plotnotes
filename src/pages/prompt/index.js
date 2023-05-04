@@ -37,8 +37,9 @@ export default function Prompt() {
             }
         );     
         let newStory = await response.json();
-        console.log('Story type: ', typeof newStory);
-        console.log('Response: ', newStory);        
+        newStory = newStory.response.split('response: ')[0];
+        setStory(newStory);
+        console.log('Response: ', story);
     } catch(err) {
         console.log('Error: ', err);
     }
@@ -74,11 +75,7 @@ export default function Prompt() {
                 <Heading fontSize={6} textAlign="center">
                     Story
                 </Heading>
-                <Box bg="white" p={6} borderRadius={2}>
-                    <Heading fontSize={6} textAlign="center">
-                        {/* {story ? story : 'No story yet'} */}
-                    </Heading>
-                </Box>
+                <Textarea disabled value={story}/>
             </Box>
         </Box>        
       </PageLayout>
