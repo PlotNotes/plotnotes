@@ -15,10 +15,10 @@ export default function Home() {
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
       </Head>
       <Image
-        src="/images/PlotNotes.png"
+        src="/images/PlotNotesLogo.png"
         alt="PlotNotes Logo"
-        width={200}
-        height={200}
+        width={600}
+        height={600}
       />
       <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
         <h1 className="font-inter text-6xl font-bold">
