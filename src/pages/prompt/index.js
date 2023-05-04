@@ -28,7 +28,7 @@ export default function Prompt() {
     console.log('Value submitted:', prompt);
 
     try {
-        const response = await fetch('/api/hello',
+        const response = await fetch('/api/prompt',
             {
                 method: 'POST',
                 headers: {
