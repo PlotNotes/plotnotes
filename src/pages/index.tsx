@@ -27,9 +27,6 @@ export default function Home() {
         <p className="font-inter text-2xl mt-3">
           A place to write your stories and share them with the world
         </p>
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-10">
-          <a href="/login">Login</a>
-        </button>
       </main>
     </div>
   )
