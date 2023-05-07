@@ -5,16 +5,6 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
 
-// Create a custom theme that includes the primer theme
-const myTheme = deepmerge(theme, {
-  fonts: {
-    normal: 'Roboto, sans-serif',
-  },
-  colors: {
-    text: '#333333',
-  },
-});
-
 export default function Prompt() {
   const [prompt, setPrompt] = useState('');
   const [story, setStory] = useState('');
@@ -120,3 +110,20 @@ export default function Prompt() {
     </div>
   );
 }
+
+// export async function getServerSideProps(context) {
+//     const authenticated = await isAuthenticated(context);
+  
+//     if (!authenticated) {
+//       return {
+//         redirect: {
+//           destination: "/login",
+//           permanent: false,
+//         },
+//       };
+//     }
+  
+//     return {
+//       props: {},
+//     };
+//   }
