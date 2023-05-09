@@ -2,13 +2,13 @@ import { query } from './db';
 
 export default async function handler(req, res) {
     const { username, password, usedGoogle } = req.body;
-    console.log(username, password), usedGoogle;
-
+    const expireDate = new Date();
+    expireDate.setDate(expireDate.getDate() + 1);
     try {
         if (usedGoogle) {
             const result = await query(
-                `INSERT INTO users (name, usedGoogle) VALUES ($1, $2);`,
-                [username, usedGoogle]
+                `INSERT INTO users (name, usedGoogle, expireDate) VALUES ($1, $2, $3);`,
+                [username, usedGoogle, expireDate]
             );
             res.status(200).json(result.rows[0]);
         }
@@ -22,7 +22,6 @@ export default async function handler(req, res) {
                 `SELECT (id) FROM users WHERE name = $1`,
                 [username]
             );
-            console.log(idQuery.rows[0]);
 
             const id = idQuery.rows[0].id;
             const addPassword = await query(

@@ -18,16 +18,12 @@ export default function signIn() {
         setUserName(ev.target.value);
     };
 
-    const handleSubmit = async (ev) => {
-        ev.preventDefault();
-        // Stores the user's username and password into the database and redirects them to the prompt page
-        console.log('Value submitted:', username, password);
-        addUser();
-    };
-
     const addUser = async () => {
         // Stores the user's username and password into the database and redirects them to the prompt page
-        console.log('Value submitted:', username, password);
+        if (username === '' || password === '') {
+            alert('Please enter a username and password');
+            return;
+        }
         const response = await fetch('/api/queries', {
             method: 'POST',
             body: JSON.stringify({ username, password, "usedGoogle": false }),
@@ -35,12 +31,10 @@ export default function signIn() {
                 'Content-Type': 'application/json'
             }
         });
-        console.log(JSON.stringify({ username, password, "usedGoogle": false }));
     };
 
     const addGoogleUser = async (username) => {
         // Stores the user's username and password into the database and redirects them to the prompt page
-        console.log('Value submitted:', username, password);
         const response = await fetch('/api/queries', {
             method: 'POST',
             body: JSON.stringify({ username, password, "usedGoogle": true }),
@@ -48,7 +42,6 @@ export default function signIn() {
                 'Content-Type': 'application/json'
             }
         });
-        console.log(JSON.stringify({ username, password, "usedGoogle": true }));
     };
 
     return (
@@ -68,7 +61,7 @@ export default function signIn() {
             <PageLayout>
                 <Box>
                     <Heading fontSize={4} color="blue.4" fontFamily="mono">Sign In</Heading>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={addUser}>
                         <TextInput
                             name="username"
                             placeholder="Username"
