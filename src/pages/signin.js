@@ -31,6 +31,13 @@ export default function signIn() {
                 'Content-Type': 'application/json'
             }
         });
+        
+        const cookies = await fetch('/api/session', {
+            method: 'POST',
+            body: JSON.stringify({ token: `${username} ${password}` }),
+            headers: {
+                'Content-Type': 'application/json'
+            }})
     };
 
     const addGoogleUser = async (username) => {
@@ -61,31 +68,28 @@ export default function signIn() {
             <PageLayout>
                 <Box>
                     <Heading fontSize={4} color="blue.4" fontFamily="mono">Sign In</Heading>
-                    <form onSubmit={addUser}>
-                        <TextInput
-                            name="username"
-                            placeholder="Username"
-                            value={username}
-                            onChange={usernameChange}
-                        />
-                        <TextInput
-                            name="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={passwordChange}
-                        />
-                        <Button type="submit">Sign In</Button>
-                    </form>
+                    <TextInput
+                        name="username"
+                        placeholder="Username"
+                        value={username}
+                        onChange={usernameChange}
+                    />
+                    <TextInput
+                        name="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={passwordChange}
+                    />
+                    <Button type="submit" onClick={addUser}>Sign In</Button>
                 </Box>
             </PageLayout>
             <div>
             <GoogleLogin
                 onSuccess={async credentialResponse => {
-                console.log(credentialResponse.clientId);
                 addGoogleUser(credentialResponse.clientId);
                 }}
                 onError={() => {
-                console.log('Login Failed');
+                alert('Error logging in with Google, try again or use the sign up form.');
                 }}/>
             </div>
         </div>

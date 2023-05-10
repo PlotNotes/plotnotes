@@ -4,7 +4,6 @@ import deepmerge from 'deepmerge';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import { loadSession } from 'src/pages/api/session.ts'
 import cookies from 'next-cookies'
 
 export default function Prompt() {
@@ -12,14 +11,11 @@ export default function Prompt() {
   const [story, setStory] = useState('');
 
   const handleChange = (ev) => {
-    console.log('Inside handleChange');
     setPrompt(ev.target.value);
   };
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
-    console.log('Value submitted:', prompt);
-
     try {
         const response = await fetch('/api/prompt',
             {
@@ -113,17 +109,18 @@ export default function Prompt() {
   );
 }
 
-export async function getServerSideProps(ctx) {
-    const c = cookies(ctx);
-    const sess = await loadSession(c.auth);
+// export async function getServerSideProps(ctx) {
+//     const c = cookies(ctx);
+//     console.log('Cookies: ', c)
+//     const sess = await loadSession(c.auth);
   
-    if (!sess) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: "/signin",
-        },
-        props:{},
-      };
-    }
-}
+//     if (!sess) {
+//       return {
+//         redirect: {
+//           permanent: false,
+//           destination: "/signin",
+//         },
+//         props:{},
+//       };
+//     }
+// }
