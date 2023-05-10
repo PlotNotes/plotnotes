@@ -4,6 +4,8 @@ import deepmerge from 'deepmerge';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
+import { loadSession } from 'src/pages/api/session.ts'
+import cookies from 'next-cookies'
 
 export default function Prompt() {
   const [prompt, setPrompt] = useState('');
@@ -111,19 +113,17 @@ export default function Prompt() {
   );
 }
 
-// export async function getServerSideProps(context) {
-//     const authenticated = await isAuthenticated(context);
+export async function getServerSideProps(ctx) {
+    const c = cookies(ctx);
+    const sess = await loadSession(c.auth);
   
-//     if (!authenticated) {
-//       return {
-//         redirect: {
-//           destination: "/login",
-//           permanent: false,
-//         },
-//       };
-//     }
-  
-//     return {
-//       props: {},
-//     };
-//   }
+    if (!sess) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/signin",
+        },
+        props:{},
+      };
+    }
+}
