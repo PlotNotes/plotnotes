@@ -24,7 +24,7 @@ export default function signIn() {
             alert('Please enter a username and password');
             return;
         }
-        const response = await fetch('/api/queries', {
+        const response = await fetch('/api/sessionCmds', {
             method: 'POST',
             body: JSON.stringify({ username, password, "usedGoogle": false }),
             headers: {
@@ -42,9 +42,9 @@ export default function signIn() {
 
     const addGoogleUser = async (username) => {
         // Stores the user's username and password into the database and redirects them to the prompt page
-        const response = await fetch('/api/queries', {
+        const response = await fetch('/api/sessionCmds', {
             method: 'POST',
-            body: JSON.stringify({ username, password, "usedGoogle": true }),
+            body: JSON.stringify({ username, "usedGoogle": true }),
             headers: {
                 'Content-Type': 'application/json'
             }

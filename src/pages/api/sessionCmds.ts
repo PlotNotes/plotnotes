@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
+import Cookies from 'cookies';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { username, password, usedGoogle } = req.body;
@@ -9,7 +10,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 `INSERT INTO users (name, usedGoogle) VALUES ($1, $2);`,
                 [username, usedGoogle]
             );
-            res.status(200).send(result.rows[0]);
+
+            const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const expireDate = new Date();
+            // sets the expiration date to be an hour from now
+            expireDate.setHours(expireDate.getHours() + 1);
+            const session = await query(
+                `INSERT INTO sessions (id, userid, expiredate) VALUES ($1, $2, $3);`,
+                [sessionId, username, expireDate]);
+            
+            const cookie = new Cookies(req, res);
+
+            console.log("c1")
+            cookie.set('token', sessionId, {
+                httpOnly: true,
+                // secure: process.env.NODE_ENV !== "development",
+                // maxAge: 60 * 60,
+                // sameSite: "strict",
+                // path: "/",
+              });
+            console.log("c2")
+            res.status(200).send({ sessionId: sessionId});
         }
         else {
             const addUser = await query(
@@ -80,30 +101,29 @@ export async function createSession(req: NextApiRequest, res: NextApiResponse) {
     }
 }
 
-export async function getSession(req: NextApiRequest, res: NextApiResponse) {
+export async function getSession(sessionId: string) {
     try {
         const result = await query(
             `SELECT * FROM sessions WHERE id = $1`,
-            [req.body]
+            [sessionId]
         );
-        res.status(200).send(result.rows[0]);
+        console.log(result.rows[0]);
         return result;
     } catch (err) {
         console.error(err);
-        res.status(500).send({ error: err + ' error in queries' });
+        throw err;
     }
 }
 
-export async function deleteExpiredSessions(req: NextApiRequest, res: NextApiResponse) {
+export async function deleteExpiredSessions() {
     const currentDate = new Date();
     try {
         const result = await query(
             `DELETE FROM sessions WHERE expireDate < $1`,
             [currentDate]
         );
-        res.status(200).send(result.rows[0]);
     } catch (err) {
         console.error(err);
-        res.status(500).send({ error: err + ' error in queries' });
+        throw err;
     }
 }

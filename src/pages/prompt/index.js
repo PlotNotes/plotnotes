@@ -5,8 +5,9 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
 import cookies from 'next-cookies'
+import loadSession from 'src/pages/api/session.ts'
 
-export default function Prompt() {
+export default function Prompt({ previousPrompts }) {
   const [prompt, setPrompt] = useState('');
   const [story, setStory] = useState('');
 
@@ -109,18 +110,21 @@ export default function Prompt() {
   );
 }
 
-// export async function getServerSideProps(ctx) {
-//     const c = cookies(ctx);
-//     console.log('Cookies: ', c)
-//     const sess = await loadSession(c.auth);
-  
-//     if (!sess) {
-//       return {
-//         redirect: {
-//           permanent: false,
-//           destination: "/signin",
-//         },
-//         props:{},
-//       };
-//     }
-// }
+export async function getServerSideProps(ctx) {
+    const c = cookies(ctx);
+    console.log('Cookies: ', c)
+    const sess = await loadSession(c.token);
+
+    if (!sess) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/signin",
+        },
+        props:{},
+      };
+    }
+
+    const previousPrompts = [] // await getUserPrompts(sess.user_id);
+    return { props: { previousPrompts } };
+}
