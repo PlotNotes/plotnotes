@@ -35,7 +35,8 @@ export default function signIn() {
             }
         });
 
-        router.push(router.query.from)
+        if (router.query.from !== undefined) 
+            router.push(router.query.from) 
     };
 
     const addGoogleUser = async (username) => {
@@ -48,7 +49,8 @@ export default function signIn() {
             }
         });
 
-        router.push(router.query.from)
+        if (router.query.from !== undefined)
+            router.push(router.query.from)
     };
 
     return (

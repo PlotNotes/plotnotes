@@ -11,14 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 [username, usedGoogle]
             );
 
-            const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            const expireDate = new Date();
-            // sets the expiration date to be an hour from now
-            expireDate.setHours(expireDate.getHours() + 1);
-            const session = await query(
-                `INSERT INTO sessions (id, userid, expiredate) VALUES ($1, $2, $3);`,
-                [sessionId, username, expireDate]);
-            
+            const sessionId = await createSession(username);
             const cookie = new Cookies(req, res);
 
             cookie.set('token', sessionId, {
@@ -43,14 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 [id, password]
             );
 
-            const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            const expireDate = new Date();
-            // sets the expiration date to be an hour from now
-            expireDate.setHours(expireDate.getHours() + 1);
-            const session = await query(
-                `INSERT INTO sessions (id, userid, expiredate) VALUES ($1, $2, $3);`,
-                [sessionId, username, expireDate]);
-                
+            const sessionId = await createSession(username);
             const cookie = new Cookies(req, res);
             cookie.set('token', sessionId, {
                 httpOnly: true,
@@ -64,47 +50,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 }
 
-export async function getUser(req: NextApiRequest, res: NextApiResponse) {
-    const { username } = req.body;
+export async function createSession(username: string): Promise<string> {
     try {
-        const result = await query(
-            `SELECT * FROM users WHERE name = $1`,
-            [username]
-        );
-        res.status(200).send(result.rows[0]);
+        const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const expireDate = new Date();
+        // sets the expiration date to be an hour from now
+        expireDate.setHours(expireDate.getHours() + 1);
+        const session = await query(
+            `INSERT INTO sessions (id, userid, expiredate) VALUES ($1, $2, $3);`,
+            [sessionId, username, expireDate]);
+        return sessionId;
     } catch (err) {
         console.error(err);
-        res.status(500).send({ error: err + ' error in queries' });
-    }
-}
-
-export async function getPassword(req: NextApiRequest, res: NextApiResponse) {
-    const { id } = req.body;
-    try {
-        const result = await query(
-            `SELECT * FROM userpasswords WHERE id = $1`,
-            [id]
-        );
-        res.status(200).send(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({ error: err + ' error in queries' });
-    }
-}
-
-export async function createSession(req: NextApiRequest, res: NextApiResponse) {
-    const expireDate = new Date();
-    // sets the expiration date to be an hour from now
-    expireDate.setHours(expireDate.getHours() + 1);
-    try {
-        const result = await query(
-            `INSERT INTO sessions (id, expiredate) VALUES ($1, $2);`,
-            [req.body, expireDate]
-        );
-        res.status(200).send(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({ error: err + ' error in queries' });
+        throw err;
     }
 }
 
