@@ -21,15 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             const cookie = new Cookies(req, res);
 
-            console.log("c1")
             cookie.set('token', sessionId, {
                 httpOnly: true,
-                // secure: process.env.NODE_ENV !== "development",
-                // maxAge: 60 * 60,
-                // sameSite: "strict",
-                // path: "/",
               });
-            console.log("c2")
             res.status(200).send({ sessionId: sessionId});
         }
         else {

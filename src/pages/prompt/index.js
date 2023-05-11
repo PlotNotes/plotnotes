@@ -5,7 +5,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
 import cookies from 'next-cookies'
-import loadSession from 'src/pages/api/session.ts'
+import loadSession from 'src/pages/api/session'
 
 export default function Prompt({ previousPrompts }) {
   const [prompt, setPrompt] = useState('');
@@ -119,9 +119,9 @@ export async function getServerSideProps(ctx) {
       return {
         redirect: {
           permanent: false,
-          destination: "/signin",
+          destination: "/signin?from=/prompt",
         },
-        props:{},
+        props:{ },
       };
     }
 

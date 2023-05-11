@@ -4,6 +4,7 @@ import { GoogleLogin } from '@react-oauth/google'
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
+import Router from 'next/router'
 
 export default function signIn() {
 
@@ -32,12 +33,15 @@ export default function signIn() {
             }
         });
         
-        const cookies = await fetch('/api/session', {
-            method: 'POST',
-            body: JSON.stringify({ token: `${username} ${password}` }),
-            headers: {
-                'Content-Type': 'application/json'
-            }})
+        // const cookies = await fetch('/api/session', {
+        //     method: 'POST',
+        //     body: JSON.stringify({ token: `${username} ${password}` }),
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     }})
+        
+        console.log(Router.query.from)
+        Router.push(Router.query.from)
     };
 
     const addGoogleUser = async (username) => {
@@ -49,6 +53,9 @@ export default function signIn() {
                 'Content-Type': 'application/json'
             }
         });
+
+        console.log(Router.query.from)
+        Router.push(Router.query.from)
     };
 
     return (

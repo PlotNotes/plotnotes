@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getSession, createSession, deleteExpiredSessions } from './sessionCmds'
 import cookie from 'cookie'
 
-export default async function loadSession(sessionId: string) {
+export default async function loadSession(sessionId) {
   // res.setHeader("Set-Cookie", cookie.serialize("token", req.body, {
   //   httpOnly: true,
   //   secure: process.env.NODE_ENV !== "development",
