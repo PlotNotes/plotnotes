@@ -112,7 +112,6 @@ export default function Prompt({ previousPrompts }) {
 
 export async function getServerSideProps(ctx) {
     const c = cookies(ctx);
-    console.log('Cookies: ', c)
     const sess = await loadSession(c.token);
 
     if (!sess) {

@@ -4,10 +4,10 @@ import { GoogleLogin } from '@react-oauth/google'
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import Router from 'next/router'
+import {useRouter} from 'next/router'
 
 export default function signIn() {
-
+    const router = useRouter()
     const [password, setPassword] = useState('');
     const [username, setUserName] = useState('');
 
@@ -19,7 +19,9 @@ export default function signIn() {
         setUserName(ev.target.value);
     };
 
-    const addUser = async () => {
+    const addUser = async (ev) => {
+        ev.preventDefault();
+
         // Stores the user's username and password into the database and redirects them to the prompt page
         if (username === '' || password === '') {
             alert('Please enter a username and password');
@@ -32,16 +34,8 @@ export default function signIn() {
                 'Content-Type': 'application/json'
             }
         });
-        
-        // const cookies = await fetch('/api/session', {
-        //     method: 'POST',
-        //     body: JSON.stringify({ token: `${username} ${password}` }),
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     }})
-        
-        console.log(Router.query.from)
-        Router.push(Router.query.from)
+
+        router.push(router.query.from)
     };
 
     const addGoogleUser = async (username) => {
@@ -54,8 +48,7 @@ export default function signIn() {
             }
         });
 
-        console.log(Router.query.from)
-        Router.push(Router.query.from)
+        router.push(router.query.from)
     };
 
     return (

@@ -43,6 +43,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 [id, password]
             );
 
+            const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const expireDate = new Date();
+            // sets the expiration date to be an hour from now
+            expireDate.setHours(expireDate.getHours() + 1);
+            const session = await query(
+                `INSERT INTO sessions (id, userid, expiredate) VALUES ($1, $2, $3);`,
+                [sessionId, username, expireDate]);
+                
+            const cookie = new Cookies(req, res);
+            cookie.set('token', sessionId, {
+                httpOnly: true,
+                });
+
             res.status(200).send(addUser.rows[0]);
         }
     } catch (err) {
@@ -101,7 +114,6 @@ export async function getSession(sessionId: string) {
             `SELECT * FROM sessions WHERE id = $1`,
             [sessionId]
         );
-        console.log(result.rows[0]);
         return result;
     } catch (err) {
         console.error(err);
