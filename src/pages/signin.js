@@ -10,6 +10,7 @@ export default function signIn() {
     const router = useRouter()
     const [password, setPassword] = useState('');
     const [username, setUserName] = useState('');
+    const [email, setEmail] = useState('');
 
     const passwordChange = (ev) => {
         setPassword(ev.target.value);
@@ -19,21 +20,32 @@ export default function signIn() {
         setUserName(ev.target.value);
     };
 
+    const emailChange = (ev) => {
+        setEmail(ev.target.value);
+    };
+
     const addUser = async (ev) => {
         ev.preventDefault();
 
         // Stores the user's username and password into the database and redirects them to the prompt page
-        if (username === '' || password === '') {
-            alert('Please enter a username and password');
+        if (username === '' || password === '' || email === '') {
+            alert('Please enter a username, email, and password');
             return;
         }
         const response = await fetch('/api/sessionCmds', {
             method: 'POST',
-            body: JSON.stringify({ username, password, "usedGoogle": false }),
+            body: JSON.stringify({ username, password, "usedGoogle": false, email }),
             headers: {
                 'Content-Type': 'application/json'
             }
         });
+
+        const data = await response.text();
+
+        if (data.error === 'A user with the same email already exists') {
+            alert(data.error);
+            return;
+        }
 
         if (router.query.from !== undefined) 
             router.push(router.query.from) 
@@ -71,12 +83,19 @@ export default function signIn() {
                 <Box>
                     <Heading fontSize={4} color="blue.4" fontFamily="mono">Sign In</Heading>
                     <TextInput
+                        name="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={emailChange}
+                    />
+                    <TextInput
                         name="username"
                         placeholder="Username"
                         value={username}
                         onChange={usernameChange}
                     />
                     <TextInput
+                        type="password"
                         name="password"
                         placeholder="Password"
                         value={password}
@@ -88,7 +107,7 @@ export default function signIn() {
             <div>
             <GoogleLogin
                 onSuccess={async credentialResponse => {
-                addGoogleUser(credentialResponse.clientId);
+                    addGoogleUser(credentialResponse.clientId);
                 }}
                 onError={() => {
                 alert('Error logging in with Google, try again or use the sign up form.');
