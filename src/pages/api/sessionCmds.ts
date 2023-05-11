@@ -21,7 +21,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 `SELECT * FROM users WHERE email = $1`,
                 [email]
             );
-
             // If a user with the same email already exists, inform the user
             if (emailQuery.rows.length > 0) {
                 res.status(200).send({ error: 'A user with the same email already exists' });
@@ -59,7 +58,7 @@ async function signIn(username: string, password: string, email: string): Promis
         [id, password]
     );
 
-    return createSession(username);
+    return createSession(id);
 }
 
 async function signInWithGoogle(username: string, email: string): Promise<string> {
@@ -72,15 +71,16 @@ async function signInWithGoogle(username: string, email: string): Promise<string
     return sessionId;
 }
 
-export async function createSession(username: string): Promise<string> {
+export async function createSession(id: string): Promise<string> {
     try {
         const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         const expireDate = new Date();
         // sets the expiration date to be an hour from now
         expireDate.setHours(expireDate.getHours() + 1);
+
         const session = await query(
             `INSERT INTO sessions (id, userid, expiredate) VALUES ($1, $2, $3);`,
-            [sessionId, username, expireDate]);
+            [sessionId, id, expireDate]);
         return sessionId;
     } catch (err) {
         console.error(err);

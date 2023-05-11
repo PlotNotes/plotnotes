@@ -39,8 +39,8 @@ export default function signIn() {
                 'Content-Type': 'application/json'
             }
         });
-        const data = await response.json();
 
+        const data = await response.text();
 
         if (data.error === 'A user with the same email already exists') {
             alert(data.error);
@@ -95,6 +95,7 @@ export default function signIn() {
                         onChange={usernameChange}
                     />
                     <TextInput
+                        type="password"
                         name="password"
                         placeholder="Password"
                         value={password}
