@@ -4,30 +4,19 @@ import deepmerge from 'deepmerge';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
+import cookies from 'next-cookies'
+import loadSession from 'src/pages/api/session'
 
-// Create a custom theme that includes the primer theme
-const myTheme = deepmerge(theme, {
-  fonts: {
-    normal: 'Roboto, sans-serif',
-  },
-  colors: {
-    text: '#333333',
-  },
-});
-
-export default function Prompt() {
+export default function Prompt({ previousPrompts }) {
   const [prompt, setPrompt] = useState('');
   const [story, setStory] = useState('');
 
   const handleChange = (ev) => {
-    console.log('Inside handleChange');
     setPrompt(ev.target.value);
   };
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
-    console.log('Value submitted:', prompt);
-
     try {
         const response = await fetch('/api/prompt',
             {
@@ -119,4 +108,22 @@ export default function Prompt() {
         </Box>
     </div>
   );
+}
+
+export async function getServerSideProps(ctx) {
+    const c = cookies(ctx);
+    const sess = await loadSession(c.token);
+
+    if (!sess) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/signin?from=/prompt",
+        },
+        props:{ },
+      };
+    }
+
+    const previousPrompts = [] // await getUserPrompts(sess.user_id);
+    return { props: { previousPrompts } };
 }

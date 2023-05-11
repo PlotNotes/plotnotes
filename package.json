@@ -10,19 +10,35 @@
   },
   "dependencies": {
     "@primer/react": "^35.25.1",
+    "@prisma/client": "^4.14.0",
+    "@react-oauth/google": "^0.11.0",
     "@types/node": "18.16.3",
     "@types/react": "18.2.0",
     "@types/react-dom": "18.2.1",
     "autoprefixer": "10.4.14",
+    "cookies": "^0.8.0",
+    "cookies-next": "^2.1.1",
     "eslint": "8.39.0",
     "eslint-config-next": "13.3.4",
+    "jsonwebtoken": "^9.0.0",
     "next": "13.3.4",
+    "next-auth": "^4.22.1",
+    "next-cookies": "^2.0.3",
     "openai": "^3.2.1",
+    "pg": "^8.10.0",
     "postcss": "8.4.23",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "styled-components": "^5.3.10",
     "tailwindcss": "3.3.2",
     "typescript": "5.0.4"
+  },
+  "devDependencies": {
+    "@types/cookies": "^0.7.7"
+  },
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
   }
 }
