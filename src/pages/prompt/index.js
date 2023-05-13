@@ -7,6 +7,7 @@ import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 
+
 export default function Prompt({ previousPrompts }) {
   const [prompt, setPrompt] = useState('');
   const [story, setStory] = useState('');
@@ -30,6 +31,18 @@ export default function Prompt({ previousPrompts }) {
         let newStory = await response.json();
         newStory = newStory.response.split('response: ')[0];
         setStory(newStory);
+        
+        const addStory = await fetch('/api/storyCmds',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sessionId: previousPrompts[0], story: newStory }),
+            }
+        );
+        console.log('addStory: ', addStory.text().storyId);
+
     } catch(err) {
         console.log('Error: ', err);
     }
@@ -113,6 +126,7 @@ export default function Prompt({ previousPrompts }) {
 export async function getServerSideProps(ctx) {
     const c = cookies(ctx);
     const sess = await loadSession(c.token);
+    let sessionID = sess.rows[0].id;
 
     if (!sess) {
       return {
@@ -124,6 +138,6 @@ export async function getServerSideProps(ctx) {
       };
     }
 
-    const previousPrompts = [] // await getUserPrompts(sess.user_id);
+    const previousPrompts = [ sessionID ] // await getUserPrompts(sess.user_id);
     return { props: { previousPrompts } };
 }
