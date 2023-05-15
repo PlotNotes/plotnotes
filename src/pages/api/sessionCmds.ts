@@ -5,6 +5,7 @@ import Cookies from 'cookies';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { username, password, usedGoogle, email } = req.body;
     try {
+        console.log("test1")
         if (usedGoogle) {
             const sessionId = await signInWithGoogle(username, email);
 
@@ -26,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 res.status(200).send({ error: 'A user with the same email already exists' });
                 return;
             }
+            console.log("test")
             const sessionId = await signIn(username, password, email);
             const cookie = new Cookies(req, res);
             cookie.set('token', sessionId, {
@@ -51,7 +53,7 @@ async function signIn(username: string, password: string, email: string): Promis
         `SELECT (id) FROM users WHERE name = $1`,
         [username]
     );
-
+    console.log(idQuery.rows[0]);
     const id = idQuery.rows[0].id;
     const addPassword = await query(
         `INSERT INTO userpasswords (id, password) VALUES ($1, $2);`,
@@ -67,7 +69,14 @@ async function signInWithGoogle(username: string, email: string): Promise<string
         [username, true, username]
     );
 
-    const sessionId = await createSession(username);
+    const userIDQuery = await query(
+        `SELECT (id) FROM users WHERE name = $1`,
+        [username]
+    );
+
+    const userID = userIDQuery.rows[0].id;
+
+    const sessionId = await createSession(userID);
     return sessionId;
 }
 
