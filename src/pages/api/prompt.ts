@@ -13,7 +13,7 @@ export function getOpenAIClient() {
 export function constructPrompt(req: any) {
   const max_tokens = 4096;
   let messages = [];
-  let content = `Write a story about "${req.body.prompt}", use every remaining token`
+  let content = `Write a story about '${req.body.prompt}', use ' for dialogue, never use double quotes`
 
   messages.push({
       "role": ChatCompletionRequestMessageRoleEnum.User,

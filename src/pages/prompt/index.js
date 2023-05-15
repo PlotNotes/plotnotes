@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, theme, Tooltip } from '@primer/react';
-import deepmerge from 'deepmerge';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -8,7 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 
 
-export default function Prompt({ previousPrompts }) {
+export default function Prompt({ sessionID }) {
   const [prompt, setPrompt] = useState('');
   const [story, setStory] = useState('');
 
@@ -32,16 +31,15 @@ export default function Prompt({ previousPrompts }) {
         newStory = newStory.response.split('response: ')[0];
         setStory(newStory);
         
-        const addStory = await fetch('/api/storyCmds',
+        await fetch('/api/storyCmds',
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ sessionId: previousPrompts[0], story: newStory }),
+                body: JSON.stringify({ sessionId: sessionID, story: newStory }),
             }
         );
-        console.log('addStory: ', addStory.text().storyId);
 
     } catch(err) {
         console.log('Error: ', err);
@@ -55,7 +53,6 @@ export default function Prompt({ previousPrompts }) {
     <div>
         <Head>
             <title>PlotNotes</title>
-            <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
         </Head>
         <Header>
             <Header.Item>
@@ -64,6 +61,13 @@ export default function Prompt({ previousPrompts }) {
                         <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
                     </Tooltip>
                 </Link>
+            </Header.Item>
+            <Header.Item>
+                <Tooltip aria-label="History" direction="e" noDelay >
+                    <Link href="/history">
+                        <Image src="/images/history.png" alt="History" height={70} width={90} />
+                    </Link>
+                </Tooltip>
             </Header.Item>
         </Header>
         <Box
@@ -126,7 +130,6 @@ export default function Prompt({ previousPrompts }) {
 export async function getServerSideProps(ctx) {
     const c = cookies(ctx);
     const sess = await loadSession(c.token);
-    let sessionID = sess.rows[0].id;
 
     if (!sess) {
       return {
@@ -137,7 +140,7 @@ export async function getServerSideProps(ctx) {
         props:{ },
       };
     }
+    let sessionID = sess.rows[0].id;
 
-    const previousPrompts = [ sessionID ] // await getUserPrompts(sess.user_id);
-    return { props: { previousPrompts } };
+    return { props: { sessionID } };
 }
