@@ -144,11 +144,5 @@ export async function getServerSideProps(ctx) {
     let prompts = historyResponse.prompts;
     let titles = historyResponse.titles;
 
-    console.log('stories: ', stories[0].message);
-    console.log('prompts: ', prompts[0].prompt);
-    console.log('titles: ', titles[0].title);
-
-    console.log('stories: ', stories.length);
-
     return { props: { sessionID, stories, prompts, titles } };
 }
