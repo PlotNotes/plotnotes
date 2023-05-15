@@ -38,6 +38,8 @@ export default function History({sessionID, history}) {
             alignItems="center"
             bg="gray.50">
                 {/* Creates a list for each item in the history array by calling the history method above */}
+                {/* There should be a copy button on the right side of each textarea, and when the textarea */}
+                {/* is clicked on, it will take the user to a page specifically about that story */}
                 {history.history.map((item) => (
                     <Box
                         display="flex"
@@ -52,8 +54,27 @@ export default function History({sessionID, history}) {
                                 value={item.message}
                                 aria-label="Story"
                                 width="100%"
-                                height="100%"                                
+                                height="100%"
+                                cols={60} 
+                                rows={10}
                             />
+                            <Button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(item.message);
+                                }}
+                                aria-label="Copy"
+                                width="100%"
+                                height="100%"
+                                bg="gray.50"
+                                color="black"
+                                border="none"
+                                sx={{
+                                    '&:hover': {
+                                        bg: 'gray.200',
+                                    },
+                                }}>
+                                Copy
+                            </Button>
                     </Box>
                 ))}
             </Box>
