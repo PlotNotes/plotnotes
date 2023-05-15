@@ -25,13 +25,26 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // Gets all stories attached to the userId
     const storyQuery = await query(
-        `SELECT (message, prompt, title) FROM history WHERE userid = $1`,
+        `SELECT (message) FROM history WHERE userid = $1`,
+        [userId]
+    );
+
+    const promptQuery = await query(
+        `SELECT (prompt) FROM history WHERE userid = $1`,
+        [userId]
+    );
+
+    const titleQuery = await query(
+        `SELECT (title) FROM history WHERE userid = $1`,
         [userId]
     );
 
     // Returns the stories
     const stories = storyQuery.rows;
-    res.status(200).send({ history: stories });
+    const prompts = promptQuery.rows;
+    const titles = titleQuery.rows;
+
+    res.status(200).send({ stories: stories, prompts: prompts, titles: titles });
 }
 
 

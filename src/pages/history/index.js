@@ -5,8 +5,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
+import { type } from 'os';
 
-export default function History({sessionID, history}) {    
+export default function History({sessionID, stories, prompts, titles}) {    
     // Upon loading the page, the user is presented with a list of their previous stories
     // Each story is displayed as a button that, when clicked, will display the story in a text area below the list
     
@@ -40,47 +41,77 @@ export default function History({sessionID, history}) {
                 {/* Creates a list for each item in the history array by calling the history method above */}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
-                {history.history.map((item) => (
+                {stories.map((story, index) => (
                     <Box
-                        display="flex"
+                        key={index} 
                         flexDirection="row"
                         justifyContent="center"
                         alignItems="center"
                         bg="gray.50">
-                            <Textarea
-                                disabled
-                                id="story"
-                                name="story"
-                                value={item.message}
-                                aria-label="Story"
-                                width="100%"
-                                height="100%"
-                                cols={60} 
-                                rows={10}
-                            />
-                            <Button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(item.message);
-                                }}
-                                aria-label="Copy"
+                            <Heading
+                                fontSize={24}
+                                fontWeight="bold"
+                                color="black"
+                                textAlign="center"
                                 width="100%"
                                 height="100%"
                                 bg="gray.50"
-                                color="black"
-                                border="none"
                                 sx={{
                                     '&:hover': {
                                         bg: 'gray.200',
                                     },
                                 }}>
-                                Copy
-                            </Button>
+                                {titles[index].title}
+                            </Heading>
+                            
+                            <Box
+                                display="flex"
+                                flexDirection="row"
+                                justifyContent="center"
+                                alignItems="center"
+                                bg="gray.50"
+                                width="100%"
+                                height="100%"
+                                sx={{
+                                    '&:hover': {
+                                        bg: 'gray.200',
+                                    },
+                                }}>
+                                <Textarea
+                                    disabled
+                                    id={`story-${index}`}
+                                    name={`story-${index}`}
+                                    value={story.message}
+                                    aria-label="Story"
+                                    width="100%"
+                                    height="100%"
+                                    cols={60} 
+                                    rows={10}
+                                />
+                                <Button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(story.message);
+                                    }}
+                                    aria-label="Copy"
+                                    width="100%"
+                                    height="100%"
+                                    bg="gray.50"
+                                    color="black"
+                                    border="none"
+                                    sx={{
+                                        '&:hover': {
+                                            bg: 'gray.200',
+                                        },
+                                    }}>
+                                    Copy
+                                </Button>
+                            </Box>
                     </Box>
                 ))}
+
             </Box>
         </div>
     );
-
 }
 
 export async function getServerSideProps(ctx) {
@@ -107,6 +138,17 @@ export async function getServerSideProps(ctx) {
             },
         }
     );
-    let history = await historyQuery.json();
-    return { props: { sessionID, history } };
+    const historyResponse = await historyQuery.json();
+
+    let stories = historyResponse.stories;
+    let prompts = historyResponse.prompts;
+    let titles = historyResponse.titles;
+
+    console.log('stories: ', stories[0].message);
+    console.log('prompts: ', prompts[0].prompt);
+    console.log('titles: ', titles[0].title);
+
+    console.log('stories: ', stories.length);
+
+    return { props: { sessionID, stories, prompts, titles } };
 }
