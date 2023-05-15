@@ -26,9 +26,10 @@ export default function Prompt({ sessionID }) {
                 },
                 body: JSON.stringify({ prompt:prompt }),
             }
-        );     
-        let newStory = await response.json();
-        newStory = newStory.response.split('response: ')[0];
+        );
+        const storyInfo = await response.json();        
+        let newStory = storyInfo.story.split('response: ')[0];
+        let storyName = storyInfo.storyName.split('response: ')[0];
         setStory(newStory);
         
         await fetch('/api/storyCmds',
@@ -37,7 +38,7 @@ export default function Prompt({ sessionID }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ sessionId: sessionID, story: newStory }),
+                body: JSON.stringify({ sessionId: sessionID, story: newStory, storyName: storyName, prompt: prompt }),
             }
         );
 

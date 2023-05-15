@@ -13,7 +13,7 @@ export function getOpenAIClient() {
 export function constructPrompt(req: any) {
   const max_tokens = 4096;
   let messages = [];
-  let content = `Write a story about '${req.body.prompt}', use ' for dialogue, never use double quotes`
+  let content = `Write a story about '${req.body.prompt}', use ' for dialogue, never use double quotes, try to avoid using 'Once upon a time'`
 
   messages.push({
       "role": ChatCompletionRequestMessageRoleEnum.User,
@@ -37,5 +37,29 @@ export async function getStory(req: any) {
 
 export default async function handler(req: any, res: any) {
   const story = await getStory(req);
-  res.status(200).send({response: story});
+  const storyName = await createStoryName(story);
+  res.status(200).send({story: story, storyName: storyName});
+}
+
+async function createStoryName(story: string): Promise<string> {
+  const openai = getOpenAIClient();
+
+  let messages = [];
+  let content = `Create a name for the story, include nothing except the name of the story: '${story}'`
+
+  messages.push({
+      "role": ChatCompletionRequestMessageRoleEnum.User,
+      "content": content
+  })
+
+  const max_tokens = 4096 - content.length;
+
+  const prompt = {
+    model: "gpt-3.5-turbo",
+    messages,
+    max_tokens: max_tokens,
+  };
+
+  const completion = await openai.createChatCompletion(prompt);
+  return completion.data.choices[0].message!.content.trim();
 }

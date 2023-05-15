@@ -25,7 +25,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // Gets all stories attached to the userId
     const storyQuery = await query(
-        `SELECT (message) FROM history WHERE userid = $1`,
+        `SELECT (message, prompt, title) FROM history WHERE userid = $1`,
         [userId]
     );
 
@@ -33,14 +33,16 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     const stories = storyQuery.rows;
     res.status(200).send({ history: stories });
 }
+
+
 async function postRequest(req: NextApiRequest, res: NextApiResponse) {
-    const { sessionId, story } = req.body;
+    const { sessionId, story, storyName, prompt } = req.body;
 
     try {
         const userId = await getUserID(sessionId);
         const storyIdQuery = await query(
-            `INSERT INTO history (userid, message) VALUES ($1, $2)`,
-            [userId, story]
+            `INSERT INTO history (userid, message, prompt, title) VALUES ($1, $2, $3, $4)`,
+            [userId, story, prompt, storyName]
         );
 
         res.status(200).send({ response: "success" });
