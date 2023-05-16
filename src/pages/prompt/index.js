@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, theme, Tooltip } from '@primer/react';
+import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -10,6 +10,7 @@ import loadSession from 'src/pages/api/session'
 export default function Prompt({ sessionID }) {
   const [prompt, setPrompt] = useState('');
   const [story, setStory] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleChange = (ev) => {
     setPrompt(ev.target.value);
@@ -17,6 +18,7 @@ export default function Prompt({ sessionID }) {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
+    setIsGenerating(true);
     try {
         const response = await fetch('/api/prompt',
             {
@@ -41,7 +43,7 @@ export default function Prompt({ sessionID }) {
                 body: JSON.stringify({ sessionId: sessionID, story: newStory, storyName: storyName, prompt: prompt }),
             }
         );
-
+        setIsGenerating(false);
     } catch(err) {
         console.log('Error: ', err);
     }
@@ -84,23 +86,28 @@ export default function Prompt({ sessionID }) {
                 justifyContent="flex-start"
                 mt={{ base: 4, md: 4 }}>
 
-                <Box bg="gray.2" p={4} borderRadius={2} mr={{ md: 6 }}>
-                <Heading fontSize={6} textAlign="center">
-                    Write a story about....
-                </Heading>                
-                <Textarea
-                    block
-                    value={prompt}
-                    onChange={handleChange}
-                    onKeyDown={(ev) => {
-                    if (ev.key === 'Enter') {
-                        handleSubmit(ev);
-                    }
-                    }}
-                />
-                <Button type="submit" onClick={handleSubmit}>
-                    Submit
-                </Button>
+                <Box bg="gray.2" p={4} borderRadius={2} mr={{ md: 6 }} >
+                    <Heading fontSize={6} textAlign="center">
+                        Write a story about....
+                    </Heading>                
+                    <Textarea
+                        block
+                        value={prompt}
+                        onChange={handleChange}
+                        onKeyDown={(ev) => {
+                            if (ev.key === 'Enter') {
+                                handleSubmit(ev);
+                            }
+                        }}
+                    />
+                    <Button variant='primary' onClick={handleSubmit} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+                        <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
+                            <Box>Submit</Box>
+                                <Box>
+                                    <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
+                                </Box>
+                        </Box>
+                    </Button>
                 </Box>
                 <Box
                     bg="gray.2"
