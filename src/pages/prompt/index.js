@@ -11,6 +11,7 @@ export default function Prompt({ sessionID }) {
   const [prompt, setPrompt] = useState('');
   const [story, setStory] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [buttonText, setButtonText] = useState('Copy');
 
   const handleChange = (ev) => {
     setPrompt(ev.target.value);
@@ -48,6 +49,20 @@ export default function Prompt({ sessionID }) {
         console.log('Error: ', err);
     }
   };
+
+  const handleClick = async () => {
+    setButtonText('Copied');
+    // Schedule a function to run after a 3 second delay that changes the button text back to 'Copy'
+    const timer = setTimeout(() => {
+      setButtonText('Copy');
+    }, 3000);
+
+    navigator.clipboard.writeText(story);
+
+    // This return function is called when the component is unmounted, ensuring that the timer is cleared to prevent potential issues
+    return () => clearTimeout(timer);
+  };
+
 
   // Displays a large, centered header prompting the user to type something into a text area below it
   // The text area has placeholder text that reads "Once upon a time...."
@@ -123,8 +138,8 @@ export default function Prompt({ sessionID }) {
                     <Heading sx={{paddingRight: 5}} fontSize={6} mb={4}>
                         Story
                     </Heading>
-                    <Button onClick={() => navigator.clipboard.writeText(story)} >
-                        Copy
+                    <Button onClick={handleClick}>
+                        {buttonText}
                     </Button>
                 </Box>
                 <Textarea disabled value={story} cols={60} rows={10} />
