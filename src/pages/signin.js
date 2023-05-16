@@ -54,6 +54,8 @@ export default function signIn() {
 
         if (router.query.from !== undefined) 
             router.push(router.query.from) 
+        else
+            router.push('/')
     };
 
     const addGoogleUser = async (username) => {
@@ -68,6 +70,8 @@ export default function signIn() {
 
         if (router.query.from !== undefined)
             router.push(router.query.from)
+        else 
+            router.push('/')
     };
 
     const logUserIn = async (ev) => {
@@ -99,7 +103,8 @@ export default function signIn() {
 
         if (router.query.from !== undefined)
             router.push(router.query.from)
-
+        else
+            router.push('/')
     };
 
     return (
