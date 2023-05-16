@@ -46,9 +46,9 @@ export default function signIn() {
         });
 
         const data = await response.text();
-        
-        if (data.error === 'A user with the same username already exists') {
-            alert(data.error);
+        if (data.includes('error')) {
+            const error = JSON.parse(data);
+            alert(error.error);
             return;
         }
 
@@ -96,6 +96,9 @@ export default function signIn() {
             alert('Username or password is incorrect');
             return;
         }
+
+        if (router.query.from !== undefined)
+            router.push(router.query.from)
 
     };
 
