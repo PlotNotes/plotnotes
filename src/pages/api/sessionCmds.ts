@@ -3,11 +3,56 @@ import { query } from './db';
 import Cookies from 'cookies';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { username, password, usedGoogle, email } = req.body;
+
+    if (req.method == "POST") {
+        await addUser(req, res);
+    }
+    else if (req.method == "PUT") {
+        await logInUser(req, res);
+    }
+}
+
+async function logInUser(req: NextApiRequest, res: NextApiResponse) {
+    const { username, password } = req.body;
     try {
-        console.log("test1")
+        
+        if (!await userExists(username, password, false)) {
+            res.status(200).send({ error: 'user does not exist' });
+            return;
+        }
+        const userId = await getUserId(username);
+        if (!await passwordMatches(userId, password)) {
+            res.status(200).send({ error: 'password does not match' });
+            return;
+        }
+        const sessionId = await createSession(`${userId}`);
+        const cookie = new Cookies(req, res);
+        
+
+        cookie.set('token', sessionId, {
+            httpOnly: true,
+        });
+        res.status(200).send({ sessionId: sessionId});
+        return;
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ error: "error" });
+    }
+}
+
+async function getUserId(username: string): Promise<number> {
+    const userQuery = await query(
+        `SELECT (id) FROM users WHERE name = $1`,
+        [username]
+    );
+    return userQuery.rows[0].id;
+}
+
+async function addUser(req: NextApiRequest, res: NextApiResponse) {
+    const { username, password, usedGoogle } = req.body;
+    try {
         if (usedGoogle) {
-            const sessionId = await signInWithGoogle(username, email);
+            const sessionId = await signInWithGoogle(username);
 
             const cookie = new Cookies(req, res);
 
@@ -17,18 +62,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.status(200).send({ sessionId: sessionId});
         }
         else {
-            // Checks to see if a user with the same email already exists
-            const emailQuery = await query(
-                `SELECT * FROM users WHERE email = $1`,
-                [email]
-            );
-            // If a user with the same email already exists, inform the user
-            if (emailQuery.rows.length > 0) {
-                res.status(200).send({ error: 'A user with the same email already exists' });
+            if (await userExists(username, password, usedGoogle)) {
+                res.status(200).send({ error: 'A user with the same username already exists' });
                 return;
             }
-            console.log("test")
-            const sessionId = await signIn(username, password, email);
+            
+            const sessionId = await signUp(username, password);
             const cookie = new Cookies(req, res);
             cookie.set('token', sessionId, {
                 httpOnly: true,
@@ -42,18 +81,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 }
 
-async function signIn(username: string, password: string, email: string): Promise<string> {
+async function userExists(username: string, password: string, usedGoogle: boolean): Promise<boolean> {
+    const userQuery = await query(
+        `SELECT (name) FROM users WHERE name = $1`,
+        [username]
+    );
+    if (userQuery.rows.length == 0) {
+        return false;
+    }
+
+    return true;
+}
+
+async function passwordMatches(userId: number, password: string): Promise<boolean> {
+    const passwordQuery = await query(
+        `SELECT (password) FROM userpasswords WHERE id = $1`,
+        [userId]
+    );
+
+    if (passwordQuery.rows[0].password == password) {
+        return true;
+    }
+
+    return false;
+}
+
+async function signUp(username: string, password: string): Promise<string> {
 
     const addUser = await query(
-        `INSERT INTO users (name, usedGoogle, email) VALUES ($1, $2, $3);`,
-        [username, false, email]
+        `INSERT INTO users (name, usedGoogle) VALUES ($1, $2);`,
+        [username, false]
     );
 
     const idQuery = await query(
         `SELECT (id) FROM users WHERE name = $1`,
         [username]
     );
-    console.log(idQuery.rows[0]);
     const id = idQuery.rows[0].id;
     const addPassword = await query(
         `INSERT INTO userpasswords (id, password) VALUES ($1, $2);`,
@@ -63,10 +126,10 @@ async function signIn(username: string, password: string, email: string): Promis
     return createSession(id);
 }
 
-async function signInWithGoogle(username: string, email: string): Promise<string> {
+async function signInWithGoogle(username: string): Promise<string> {
     const user = await query(
-        `INSERT INTO users (name, usedGoogle, email) VALUES ($1, $2, $3);`,
-        [username, true, username]
+        `INSERT INTO users (name, usedGoogle) VALUES ($1, $2);`,
+        [username, true]
     );
 
     const userIDQuery = await query(
