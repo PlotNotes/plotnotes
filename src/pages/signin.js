@@ -161,16 +161,17 @@ export default function signIn() {
                     <Button type="submit" onClick={logUserIn}>Login</Button>
                 </Box>
             </PageLayout>
-
-            <div>
-            <GoogleLogin
-                onSuccess={async credentialResponse => {
-                    addGoogleUser(credentialResponse.clientId);
-                }}
-                onError={() => {
-                alert('Error logging in with Google, try again or use the sign up form.');
-                }}/>
-            </div>
+            <PageLayout>
+                <Box>
+                    <GoogleLogin
+                        onSuccess={async credentialResponse => {
+                            addGoogleUser(credentialResponse.clientId);
+                        }}
+                        onError={() => {
+                        alert('Error logging in with Google, try again or use the sign up form.');
+                    }}/>
+                </Box>
+            </PageLayout>
         </div>
     );        
 }

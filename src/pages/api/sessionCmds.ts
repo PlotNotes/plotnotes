@@ -28,10 +28,12 @@ async function logInUser(req: NextApiRequest, res: NextApiResponse) {
         const sessionId = await createSession(`${userId}`);
         const cookie = new Cookies(req, res);
         
-
+        // Sets the user's cookie to expire the same day
         cookie.set('token', sessionId, {
             httpOnly: true,
+            maxAge: 60 * 60 * 24,
         });
+
         res.status(200).send({ sessionId: sessionId});
         return;
     } catch (err) {
@@ -56,8 +58,10 @@ async function addUser(req: NextApiRequest, res: NextApiResponse) {
 
             const cookie = new Cookies(req, res);
 
+            // Sets the user's cookie to expire the same day
             cookie.set('token', sessionId, {
                 httpOnly: true,
+                maxAge: 60 * 60 * 24,
             });
             res.status(200).send({ sessionId: sessionId});
         }
@@ -71,6 +75,7 @@ async function addUser(req: NextApiRequest, res: NextApiResponse) {
             const cookie = new Cookies(req, res);
             cookie.set('token', sessionId, {
                 httpOnly: true,
+                maxAge: 60 * 60 * 24,
                 });
 
             res.status(200).send(sessionId);
