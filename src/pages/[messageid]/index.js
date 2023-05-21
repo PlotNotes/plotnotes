@@ -9,6 +9,9 @@ import Router, { useRouter } from 'next/router'
 
 export default function Page({ sessionID, parentStory, childStories }) {
 
+    console.log('parentStory: ', parentStory);
+    console.log('childStories: ', childStories);
+
     // Displays the story corresponding to the messageID in a text area
     // There should be a copy button on the right side of the textarea
     return (
