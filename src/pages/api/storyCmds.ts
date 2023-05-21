@@ -39,23 +39,29 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
         [userId]
     );
 
+    const messageIDQuery = await query(
+        `SELECT (messageid) FROM history WHERE userid = $1`,
+        [userId]
+    );
+
     // Returns the stories
     const stories = storyQuery.rows;
     const prompts = promptQuery.rows;
     const titles = titleQuery.rows;
+    const messageIDs = messageIDQuery.rows;
 
-    res.status(200).send({ stories: stories, prompts: prompts, titles: titles });
+
+    res.status(200).send({ stories: stories, prompts: prompts, titles: titles, messageIDs: messageIDs });
 }
 
 
 async function postRequest(req: NextApiRequest, res: NextApiResponse) {
-    const { sessionId, story, storyName, prompt } = req.body;
-
+    const { sessionId, story, storyName, prompt, iterationId } = req.body;
     try {
         const userId = await getUserID(sessionId);
         const storyIdQuery = await query(
-            `INSERT INTO history (userid, message, prompt, title) VALUES ($1, $2, $3, $4)`,
-            [userId, story, prompt, storyName]
+            `INSERT INTO history (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
+            [iterationId, userId, story, prompt, storyName, 0]
         );
 
         res.status(200).send({ response: "success" });
@@ -79,7 +85,7 @@ export async function getStory(storyID: string): Promise<string> {
     }
 }
 
-async function getUserID(sessionId: string): Promise<string>
+export async function getUserID(sessionId: string): Promise<string>
 {
     const userIdQuery = await query(
         `SELECT (userid) FROM sessions WHERE id = $1`,

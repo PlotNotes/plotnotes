@@ -31,7 +31,7 @@ async function logInUser(req: NextApiRequest, res: NextApiResponse) {
         // Sets the user's cookie to expire the same day
         cookie.set('token', sessionId, {
             httpOnly: true,
-            maxAge: 60 * 60 * 24,
+            maxAge: 1000 * 60 * 60 * 24,
         });
 
         res.status(200).send({ sessionId: sessionId});
@@ -61,7 +61,7 @@ async function addUser(req: NextApiRequest, res: NextApiResponse) {
             // Sets the user's cookie to expire the same day
             cookie.set('token', sessionId, {
                 httpOnly: true,
-                maxAge: 60 * 60 * 24,
+                maxAge: 1000 * 60 * 60 * 24,
             });
             res.status(200).send({ sessionId: sessionId});
         }
@@ -75,8 +75,8 @@ async function addUser(req: NextApiRequest, res: NextApiResponse) {
             const cookie = new Cookies(req, res);
             cookie.set('token', sessionId, {
                 httpOnly: true,
-                maxAge: 60 * 60 * 24,
-                });
+                maxAge: 1000 * 60 * 60 * 24,
+            });
 
             res.status(200).send(sessionId);
         }
@@ -132,6 +132,25 @@ async function signUp(username: string, password: string): Promise<string> {
 }
 
 async function signInWithGoogle(username: string): Promise<string> {
+
+    // Checks to see if the user already exists, if so, just log them in
+    const userQuery = await query(
+        `SELECT (name) FROM users WHERE name = $1`,
+        [username]
+    );
+
+    if (userQuery.rows.length != 0) {
+        const userIDQuery = await query(
+            `SELECT (id) FROM users WHERE name = $1`,
+            [username]
+        );
+
+        const userID = userIDQuery.rows[0].id;
+
+        const sessionId = await createSession(userID);
+        return sessionId;
+    }
+
     const user = await query(
         `INSERT INTO users (name, usedGoogle) VALUES ($1, $2);`,
         [username, true]

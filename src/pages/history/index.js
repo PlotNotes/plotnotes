@@ -7,7 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import { type } from 'os';
 
-export default function History({sessionID, stories, prompts, titles}) {    
+export default function History({sessionID, stories, prompts, titles, messageid}) {    
     // Upon loading the page, the user is presented with a list of their previous stories
     // Each story is displayed as a button that, when clicked, will display the story in a text area below the list
     
@@ -42,71 +42,73 @@ export default function History({sessionID, stories, prompts, titles}) {
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {stories.map((story, index) => (
-                    <Box
-                        key={index} 
-                        flexDirection="row"
-                        justifyContent="center"
-                        alignItems="center"
-                        bg="gray.50">
-                            <Heading
-                                fontSize={24}
-                                fontWeight="bold"
-                                color="black"
-                                textAlign="center"
-                                width="100%"
-                                height="100%"
-                                bg="gray.50"
-                                sx={{
-                                    '&:hover': {
-                                        bg: 'gray.200',
-                                    },
-                                }}>
-                                {titles[index].title}
-                            </Heading>
-                            
-                            <Box
-                                display="flex"
-                                flexDirection="row"
-                                justifyContent="center"
-                                alignItems="center"
-                                bg="gray.50"
-                                width="100%"
-                                height="100%"
-                                sx={{
-                                    '&:hover': {
-                                        bg: 'gray.200',
-                                    },
-                                }}>
-                                <Textarea
-                                    disabled
-                                    id={`story-${index}`}
-                                    name={`story-${index}`}
-                                    value={story.message}
-                                    aria-label="Story"
-                                    width="100%"
-                                    height="100%"
-                                    cols={60} 
-                                    rows={10}
-                                />
-                                <Button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(story.message);
-                                    }}
-                                    aria-label="Copy"
+                    <Link href={`/${messageid[index].messageid}`}>
+                        <Box
+                            key={index} 
+                            flexDirection="row"
+                            justifyContent="center"
+                            alignItems="center"
+                            bg="gray.50">
+                                <Heading
+                                    fontSize={24}
+                                    fontWeight="bold"
+                                    color="black"
+                                    textAlign="center"
                                     width="100%"
                                     height="100%"
                                     bg="gray.50"
-                                    color="black"
-                                    border="none"
                                     sx={{
                                         '&:hover': {
                                             bg: 'gray.200',
                                         },
                                     }}>
-                                    Copy
-                                </Button>
-                            </Box>
-                    </Box>
+                                    {titles[index].title}
+                                </Heading>
+                                
+                                <Box
+                                    display="flex"
+                                    flexDirection="row"
+                                    justifyContent="center"
+                                    alignItems="center"
+                                    bg="gray.50"
+                                    width="100%"
+                                    height="100%"
+                                    sx={{
+                                        '&:hover': {
+                                            bg: 'gray.200',
+                                        },
+                                    }}>
+                                    <Textarea
+                                        disabled
+                                        id={`story-${index}`}
+                                        name={`story-${index}`}
+                                        value={story.message}
+                                        aria-label="Story"
+                                        width="100%"
+                                        height="100%"
+                                        cols={60} 
+                                        rows={10}
+                                    />
+                                    <Button
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(story.message);
+                                        }}
+                                        aria-label="Copy"
+                                        width="100%"
+                                        height="100%"
+                                        bg="gray.50"
+                                        color="black"
+                                        border="none"
+                                        sx={{
+                                            '&:hover': {
+                                                bg: 'gray.200',
+                                            },
+                                        }}>
+                                        Copy
+                                    </Button>
+                                </Box>
+                        </Box>
+                    </Link>
                 ))}
 
             </Box>
@@ -143,6 +145,7 @@ export async function getServerSideProps(ctx) {
     let stories = historyResponse.stories;
     let prompts = historyResponse.prompts;
     let titles = historyResponse.titles;
+    let messageid = historyResponse.messageIDs;
 
-    return { props: { sessionID, stories, prompts, titles } };
+    return { props: { sessionID, stories, prompts, titles, messageid } };
 }
