@@ -82,7 +82,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                                         disabled
                                         id={`story-${index}`}
                                         name={`story-${index}`}
-                                        value={story.message}
+                                        value={story}
                                         aria-label="Story"
                                         width="100%"
                                         height="100%"
@@ -141,7 +141,7 @@ export async function getServerSideProps(ctx) {
         }
     );
     const historyResponse = await historyQuery.json();
-
+    
     let stories = historyResponse.stories;
     let prompts = historyResponse.prompts;
     let titles = historyResponse.titles;
