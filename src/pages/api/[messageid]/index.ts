@@ -2,16 +2,93 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
 import Cookies from 'cookies';
 import { getUserID } from '../storyCmds';
+import { continueStory } from '../prompt';
 
 export default async function storyHistory(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method == "GET")
-    {
+    if (req.method == "GET") {
         await getRequest(req, res);
+    } else if (req.method == "POST") {
+        await postRequest(req, res);
     }
 }
 
+async function postRequest(req: NextApiRequest, res: NextApiResponse) {
+
+    console.log("post request");
+
+    const messageid = req.query.messageid as string;
+    const prompt = req.body.prompt as string;
+    const sessionId = req.cookies.token;
+
+    if (!sessionId) {
+        res.status(401).send({ response: "no session id" });
+        return;
+    }
+
+    const userId = await getUserID(sessionId);
+    console.log("userID ", userId);
+
+    // Gets the iterationID of the story associated with the given messageID
+    const iterationIDQuery = await query(
+        `SELECT (iterationid) FROM history WHERE messageid = $1`,
+        [messageid]
+    );
+
+    const iterationID = iterationIDQuery.rows[0].iterationid;
+    console.log("iterationID ", iterationID);
+    let parentID = "0";
+    if (iterationID == 0) {
+        parentID = messageid;
+    } else {
+        // Gets the parentID of the story associated with the given messageID
+        const parentIDQuery = await query(
+            `SELECT (parentid) FROM history WHERE messageid = $1`,
+            [messageid]
+        );
+
+        parentID = parentIDQuery.rows[0].parentid;
+    }
+
+    console.log("parentID ", parentID);
+
+    // Gets the title of the parent story
+    const parentTitle = await getTitle(messageid);
+
+    console.log("parentTitle ", parentTitle);
+
+    console.log("messageid ", messageid)
+    // Gets every previous story in this iteration and puts it in a string array
+    const storiesQuery = await query(
+        `SELECT (message) FROM history WHERE messageid = $1 OR parentid = $1`,
+        [parentID]
+    );
+
+    let stories: string[] = [];
+
+    for (let i = 0; i < storiesQuery.rows.length; i++) {
+        stories.push(storiesQuery.rows[i].message);
+    }
+
+    const story = await continueStory(prompt, stories);
+
+    // Inserts the new story into the database, adding 1 to the iterationID
+    await query(
+        `INSERT INTO history (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [iterationID + 1, userId, story, prompt, parentTitle, parentID]
+    );
+
+    const messageIDQuery = await query(
+        `SELECT (messageid) FROM history WHERE message = $1`,
+        [story]
+    );
+
+    const messageID = messageIDQuery.rows[0].messageid;
+
+    res.status(200).send({ messageID: messageID });
+}
+
 async function getRequest(req: NextApiRequest, res: NextApiResponse) {
-    const messageid = req.query.messageid;
+    const messageid = req.query.messageid as string;
     const sessionId = req.cookies.token;
     if (!sessionId) {
         res.status(401).send({ response: "no session id" });
@@ -20,7 +97,6 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // Checks to see if the messageID belongs to the user requesting it
     const userId = await getUserID(sessionId);
-
     const messageIDQuery = await query(
         `SELECT (message) FROM history WHERE userid = $1 AND messageid = $2`,
         [userId, messageid]
@@ -38,9 +114,10 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     );
     const parentStoryID = parentIdQuery.rows[0].parentid;
 
-    // If there is no parentID, meaning it is 0, then it is the first story and should be returned
+    // If there is no parentID, meaning it is 0, then it is the first story and should be returned along with the title
     if (parentStoryID == 0) {
-        res.status(200).send({ response: messageIDQuery.rows[0].message });
+        const parentTitle = await getTitle(messageid);
+        res.status(200).send({ stories: [messageIDQuery.rows[0].message], parentTitle: parentTitle });
         return;
     }
 
@@ -62,13 +139,24 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
         childStoriesArray.push(childStories[i].message);
     }
 
+    const parentTitle = await getTitle(parentStoryID);
+    let stories = [];
+    stories.push(parentStory);
+
+    for (let i = 0; i < childStoriesArray.length; i++) {
+        stories.push(childStoriesArray[i]);
+    }
+
+    res.status(200).send({ stories: stories, parentTitle: parentTitle });
+}
+
+async function getTitle(messageid: string): Promise<string> {
     // Gets the title of the parent story
     const parentTitleQuery = await query(
         `SELECT (title) FROM history WHERE messageid = $1`,
-        [parentStoryID]
+        [messageid]
     );
-
+    
     const parentTitle = parentTitleQuery.rows[0];
-
-    res.status(200).send({ parentStory: parentStory, childStories: childStoriesArray, parentTitle: parentTitle });
+    return parentTitle.title;
 }
