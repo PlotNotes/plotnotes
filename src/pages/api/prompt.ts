@@ -1,6 +1,6 @@
 import { OpenAIApi, Configuration, ChatCompletionRequestMessageRoleEnum } from "openai";
 
-export function getOpenAIConfiguration() {
+function getOpenAIConfiguration() {
   return new Configuration({
     apiKey: process.env.OPENAI_KEY,
   }); 
@@ -10,10 +10,10 @@ export function getOpenAIClient() {
   return new OpenAIApi(getOpenAIConfiguration());
 }
 
-export function constructPrompt(req: any) {
+export function constructPrompt(prompt: string) {
   const max_tokens = 4096;
   let messages = [];
-  let content = `Write a story about '${req.body.prompt}', try to avoid using 'Once upon a time'`
+  let content = `Write a story about '${prompt}', try to avoid using 'Once upon a time'`
 
   messages.push({
       "role": ChatCompletionRequestMessageRoleEnum.User,
@@ -29,7 +29,7 @@ export function constructPrompt(req: any) {
 
 export async function getStory(req: any) {
   const openai = getOpenAIClient();
-  const prompt = constructPrompt(req);
+  const prompt = constructPrompt(req.body.prompt);
 
   const completion = await openai.createChatCompletion(prompt);
   return completion.data.choices[0].message!.content.trim();
@@ -61,5 +61,58 @@ async function createStoryName(story: string): Promise<string> {
   };
 
   const completion = await openai.createChatCompletion(prompt);
+  return completion.data.choices[0].message!.content.trim();
+}
+
+export async function continueStory(prompt: string, oldStories: string[]): Promise<string> {
+  console.log("oldStories: " + oldStories);
+  const openai = getOpenAIClient();
+
+  let messages = [];
+  let summary = "";
+  try {
+    for (let i = 0; i < oldStories.length; i++) {
+      summary = oldStories[i]
+    
+      let content = `Summarize the following: '${oldStories}'`
+      messages.push({
+          "role": ChatCompletionRequestMessageRoleEnum.User,
+          "content": content
+      })
+    
+      const max_tokens = 4096 - content.length;
+
+      const summaryPrompt = {
+        model: "gpt-3.5-turbo",
+        messages,
+        max_tokens: max_tokens,
+      };
+      console.log("Iteration ", i)
+      console.log("summaryPrompt: " + summaryPrompt);
+      const completion = await openai.createChatCompletion(summaryPrompt);
+      summary += completion.data.choices[0].message!.content.trim() + " ";
+    }
+  } catch (err) {
+    console.log(err);
+  }
+  console.log("summary: " + summary);
+  let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token`
+
+  messages = [];
+  messages.push({
+      "role": ChatCompletionRequestMessageRoleEnum.User,
+      "content": content
+  })
+
+  const max_tokens = 4096 - content.length;
+
+  const continuePrompt = {
+    model: "gpt-3.5-turbo",
+    messages,
+    max_tokens: max_tokens,
+  };
+
+  const completion = await openai.createChatCompletion(continuePrompt);
+  console.log(completion.data.choices[0].message!.content.trim());
   return completion.data.choices[0].message!.content.trim();
 }

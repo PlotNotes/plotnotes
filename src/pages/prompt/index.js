@@ -41,7 +41,11 @@ export default function Prompt({ sessionID }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ sessionId: sessionID, story: newStory, storyName: storyName, prompt: prompt }),
+                body: JSON.stringify({ sessionId: sessionID, 
+                                       story: newStory, 
+                                       storyName: storyName, 
+                                       prompt: prompt, 
+                                       iterationId: 0 }),
             }
         );
         setIsGenerating(false);
