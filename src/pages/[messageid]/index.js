@@ -7,7 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 
-export default function Page({ sessionID, parentStory, childStories, title }) {
+export default function Page({ sessionID, stories, title }) {
     // Displays the story corresponding to the messageID in a text area
     // There should be a copy button on the right side of the textarea
     return (
@@ -30,10 +30,7 @@ export default function Page({ sessionID, parentStory, childStories, title }) {
                         <Heading
                             fontSize={24}
                             fontWeight="bold"
-                            color="black"
-                            textAlign="center"
-                            bg="gray.50"
-                        >
+                            color="black">
                             {title}
                         </Heading>
                     </Header.Item>
@@ -43,50 +40,8 @@ export default function Page({ sessionID, parentStory, childStories, title }) {
             display="flex"
             flexDirection="column"
             justifyContent="center"
-            alignItems="center"
-            bg="gray.50">
-                <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    bg="gray.50"
-                    >
-                    <Heading
-                        fontSize={24}
-                        fontWeight="bold"
-                        color="black"
-                        textAlign="center"
-                        width="100%"
-                        height="100%"
-                        bg="gray.50"
-                        sx={{
-                            paddingRight: 5,
-                            '&:hover': {
-                                bg: 'gray.100',
-                                cursor: 'pointer'
-                            }
-                        }}>
-                        1
-                    </Heading>
-                    <Textarea
-                        disabled
-                        fontWeight="bold"
-                        color="black"
-                        textAlign="center"
-                        width="100%"
-                        height="100%"
-                        bg="gray.50"
-                        cols={90}
-                        rows={20}
-                        value={parentStory}
-                        sx={{
-                            '&:hover': {
-                                bg: 'gray.100',
-                                cursor: 'pointer'
-                            }
-                        }}/>
-                </Box>
-                    {childStories.map((story, index) => (
+            alignItems="center">
+                    {stories.map((story, index) => (
                         <Box
                             key={index}
                             display="flex"
@@ -97,36 +52,16 @@ export default function Page({ sessionID, parentStory, childStories, title }) {
                                     fontSize={24}
                                     fontWeight="bold"
                                     color="black"
-                                    textAlign="center"
-                                    width="100%"
-                                    height="100%"
-                                    bg="gray.50"
-                                    sx={{
-                                        paddingRight: 5,
-                                        '&:hover': {
-                                            bg: 'gray.100',
-                                            cursor: 'pointer'
-                                        }
-                                    }}>
-                                    {index+2}
+                                    sx={{ paddingRight: 5 }}>
+                                    {index+1}
                                 </Heading>
                             <Textarea
                                 disabled
                                 fontWeight="bold"
                                 color="black"
-                                textAlign="center"
-                                width="100%"
-                                height="100%"
-                                bg="gray.50"
                                 cols={90}
                                 rows={20}
-                                value={story}
-                                sx={{
-                                    '&:hover': {
-                                        bg: 'gray.100',
-                                        cursor: 'pointer'
-                                    }
-                                }}/>
+                                value={story}/>
                         </Box>
                     ))
                     }
@@ -166,11 +101,12 @@ export async function getServerSideProps(ctx) {
         if (storyInfo.error) {
             Router.push('/');
         }
-        console.log(storyInfo);
         // Stores storyInfo.response as an array of strings
         const parentStory = storyInfo.parentStory
         const childStories = storyInfo.childStories
         const title = storyInfo.parentTitle.title
-        
-        return { props: { sessionID, parentStory, childStories, title } };
+
+        const stories = [parentStory, ...childStories];
+
+        return { props: { sessionID, stories, title } };
 }

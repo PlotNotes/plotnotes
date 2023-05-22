@@ -46,23 +46,12 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                         <Link href={`/${messageid[index]}`}>
                             <Box
                                 key={index} 
-                                flexDirection="row"
                                 justifyContent="center"
-                                alignItems="center"
-                                bg="gray.50">
+                                alignItems="center">
                                     <Heading
                                         fontSize={24}
                                         fontWeight="bold"
-                                        color="black"
-                                        textAlign="center"
-                                        width="100%"
-                                        height="100%"
-                                        bg="gray.50"
-                                        sx={{
-                                            '&:hover': {
-                                                bg: 'gray.200',
-                                            },
-                                        }}>
+                                        color="black">
                                         {titles[index]}
                                     </Heading>
                                     
@@ -70,23 +59,13 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                                         display="flex"
                                         flexDirection="row"
                                         justifyContent="center"
-                                        alignItems="center"
-                                        bg="gray.50"
-                                        width="100%"
-                                        height="100%"
-                                        sx={{
-                                            '&:hover': {
-                                                bg: 'gray.200',
-                                            },
-                                        }}>
+                                        alignItems="center">
                                         <Textarea
                                             disabled
                                             id={`story-${index}`}
                                             name={`story-${index}`}
                                             value={story}
                                             aria-label="Story"
-                                            width="100%"
-                                            height="100%"
                                             cols={60} 
                                             rows={10}
                                         />                                    
@@ -98,16 +77,8 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                                 navigator.clipboard.writeText(story);
                             }}
                             aria-label="Copy"
-                            width="100%"
-                            height="100%"
-                            bg="gray.50"
                             color="black"
-                            border="none"
-                            sx={{
-                                '&:hover': {
-                                    bg: 'gray.200',
-                                },
-                            }}>
+                            border="none">
                             Copy
                         </Button>
                     </div>

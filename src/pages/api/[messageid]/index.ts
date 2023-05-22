@@ -4,11 +4,7 @@ import Cookies from 'cookies';
 import { getUserID } from '../storyCmds';
 
 export default async function storyHistory(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method == "POST")
-    {
-        // await postRequest(req, res);
-    }
-    else if (req.method == "GET")
+    if (req.method == "GET")
     {
         await getRequest(req, res);
     }
@@ -41,10 +37,9 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
         [messageid]
     );
     const parentStoryID = parentIdQuery.rows[0].parentid;
-    console.log("parent story id: " + parentStoryID);
+
     // If there is no parentID, meaning it is 0, then it is the first story and should be returned
     if (parentStoryID == 0) {
-        console.log("no parent story");
         res.status(200).send({ response: messageIDQuery.rows[0].message });
         return;
     }
@@ -72,7 +67,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
         `SELECT (title) FROM history WHERE messageid = $1`,
         [parentStoryID]
     );
-    console.log("parent title query: " + parentTitleQuery);
+
     const parentTitle = parentTitleQuery.rows[0];
 
     res.status(200).send({ parentStory: parentStory, childStories: childStoriesArray, parentTitle: parentTitle });
