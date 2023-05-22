@@ -88,7 +88,8 @@ export default function Page({ sessionID, stories, title }) {
                                 display="flex"
                                 justifyContent="center"
                                 alignItems="center"
-                                bg="gray.50">
+                                bg="gray.50"
+                                sx={{ paddingBottom: 4 }}>
                                     <Heading
                                         fontSize={24}
                                         fontWeight="bold"
