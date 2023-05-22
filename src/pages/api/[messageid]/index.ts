@@ -67,5 +67,13 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
         childStoriesArray.push(childStories[i].message);
     }
 
-    res.status(200).send({ parentStory: parentStory, childStories: childStoriesArray });
+    // Gets the title of the parent story
+    const parentTitleQuery = await query(
+        `SELECT (title) FROM history WHERE messageid = $1`,
+        [parentStoryID]
+    );
+    console.log("parent title query: " + parentTitleQuery);
+    const parentTitle = parentTitleQuery.rows[0];
+
+    res.status(200).send({ parentStory: parentStory, childStories: childStoriesArray, parentTitle: parentTitle });
 }
