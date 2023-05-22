@@ -8,6 +8,10 @@ import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 
 export default function Page({ sessionID, stories, title }) {
+    // Gets the messageID from the URL
+    const router = useRouter();
+    const { messageid } = router.query;
+
     // Displays the story corresponding to the messageID in a text area
     // There should be a copy button on the right side of the textarea
     return (
@@ -42,33 +46,35 @@ export default function Page({ sessionID, stories, title }) {
             justifyContent="center"
             alignItems="center">
                     {stories.map((story, index) => (
-                        <Box
-                            key={index}
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                            bg="gray.50">
-                                <Heading
-                                    fontSize={24}
+                        <Link href={`/${messageid}/${index+1}`}>
+                            <Box
+                                key={index}
+                                display="flex"
+                                justifyContent="center"
+                                alignItems="center"
+                                bg="gray.50">
+                                    <Heading
+                                        fontSize={24}
+                                        fontWeight="bold"
+                                        color="black"
+                                        sx={{ paddingRight: 5 }}>
+                                        {index+1}
+                                    </Heading>
+                                <Textarea
+                                    disabled
                                     fontWeight="bold"
                                     color="black"
-                                    sx={{ paddingRight: 5 }}>
-                                    {index+1}
-                                </Heading>
-                            <Textarea
-                                disabled
-                                fontWeight="bold"
-                                color="black"
-                                cols={90}
-                                rows={20}
-                                value={story}/>
-                            <Button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(story);
-                                }}>
-                                Copy
-                            </Button>
-                        </Box>
+                                    cols={90}
+                                    rows={20}
+                                    value={story}/>
+                                <Button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(story);
+                                    }}>
+                                    Copy
+                                </Button>
+                            </Box>
+                        </Link>
                     ))
                     }
             </Box>
