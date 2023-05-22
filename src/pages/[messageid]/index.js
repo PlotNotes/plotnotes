@@ -62,6 +62,12 @@ export default function Page({ sessionID, stories, title }) {
                                 cols={90}
                                 rows={20}
                                 value={story}/>
+                            <Button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(story);
+                                }}>
+                                Copy
+                            </Button>
                         </Box>
                     ))
                     }
