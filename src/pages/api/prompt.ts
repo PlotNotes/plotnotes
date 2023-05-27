@@ -24,6 +24,7 @@ export function constructPrompt(prompt: string) {
     model: "gpt-3.5-turbo",
     messages, 
     max_tokens: max_tokens - content.length,
+    temperature: 0.0,
   }; 
 }
 
@@ -58,6 +59,7 @@ async function createStoryName(story: string): Promise<string> {
     model: "gpt-3.5-turbo",
     messages,
     max_tokens: max_tokens,
+    temperature: 0.0,
   };
 
   const completion = await openai.createChatCompletion(prompt);
@@ -85,6 +87,7 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
         model: "gpt-3.5-turbo",
         messages,
         max_tokens: max_tokens,
+        temperature: 0.0,
       };
       const completion = await openai.createChatCompletion(summaryPrompt);
       summary += completion.data.choices[0].message!.content.trim() + " ";
@@ -106,6 +109,7 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
     model: "gpt-3.5-turbo",
     messages,
     max_tokens: max_tokens,
+    temperature: 0.0,
   };
 
   const completion = await openai.createChatCompletion(continuePrompt);

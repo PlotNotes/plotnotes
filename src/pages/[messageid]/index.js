@@ -81,9 +81,8 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             justifyContent="center"
             alignItems="center">
                     {stories.map((story, index) => (
-                        <Link href={`/${messageIDs[index]}`}>
+                        <Link key={index} href={`/${messageIDs[index]}`}>
                             <Box
-                                key={index}
                                 display="flex"
                                 justifyContent="center"
                                 alignItems="center"
@@ -141,7 +140,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                                         </Box>
                                 </Box>
                             </Button>
-                        </Box>
+                    </Box>
             </Box>
         </div>
     )

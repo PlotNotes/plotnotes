@@ -66,8 +66,8 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                                             name={`story-${index}`}
                                             value={story}
                                             aria-label="Story"
-                                            cols={60} 
-                                            rows={10}
+                                            cols={90} 
+                                            rows={20}
                                         />                                    
                                     </Box>
                             </Box>

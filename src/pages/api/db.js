@@ -1,9 +1,9 @@
 import { Pool } from 'pg';
 
+// create a pool at the top level of your application
+const pool = new Pool();
 
 export async function query(text, params) {
-    const pool = new Pool();
-    const query = pool.query(text, params)
-    pool.end()
-    return query;
+    // use the existing pool for queries
+    return pool.query(text, params);
 }
