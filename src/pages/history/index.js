@@ -103,7 +103,7 @@ export async function getServerSideProps(ctx) {
     }
     let sessionID = sess.rows[0].id;
 
-    let historyQuery = await fetch(`http://localhost:3000/api/storyCmds`,
+    let historyQuery = await fetch(`/api/storyCmds`,
         {
             method: 'GET',
             headers: {

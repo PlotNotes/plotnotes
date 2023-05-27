@@ -25,7 +25,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
         ev.preventDefault();
         setIsGenerating(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/${messageid}`,
+            const response = await fetch(`/api/${messageid}`,
                 {
                     method: 'POST',
                     headers: {
@@ -161,7 +161,7 @@ export async function getServerSideProps(ctx) {
       };
     }
     let sessionID = sess.rows[0].id;
-    const response = await fetch(`http://localhost:3000/api/${messageID}`,
+    const response = await fetch(`/api/${messageID}`,
             {
                 method: 'GET',
                 headers: {
