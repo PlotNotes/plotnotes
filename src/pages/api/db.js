@@ -1,7 +1,10 @@
-import { Pool } from 'pg';
+import pg from 'pg';
 
-// create a pool at the top level of your application
-const pool = new Pool();
+const { Pool } = pg;
+
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL + "?sslmode=require",
+})
 
 export async function query(text, params) {
     // use the existing pool for queries
