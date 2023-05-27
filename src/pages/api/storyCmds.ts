@@ -41,7 +41,7 @@ async function updateStories(): Promise<string[]> {
     // Loops through the stories and makes a query for a message whose parentID is the story's messageID, and replaces the story with the most recent version
     let stories: string[] = [];
     for (let i = 0; i < storyQuery.rows.length; i++) {
-        const storyID = storyQuery.rows[i].messageid;
+        const storyID = (storyQuery.rows[i] as any).messageid;
 
         const childrenStoryQuery = await query(
             `SELECT (message) FROM history WHERE parentid = $1 ORDER BY iterationid DESC LIMIT 1`,
@@ -49,7 +49,7 @@ async function updateStories(): Promise<string[]> {
         );
 
         if (childrenStoryQuery.rows.length != 0) {
-            stories.push(childrenStoryQuery.rows[0].message);
+            stories.push((childrenStoryQuery.rows[0] as any).message);
             continue;
         }
 
@@ -58,7 +58,7 @@ async function updateStories(): Promise<string[]> {
             [storyID]
         );
 
-        stories.push(parentStoryQuery.rows[0].message);
+        stories.push((parentStoryQuery.rows[0] as any).message);
     }
 
     return stories;
@@ -77,7 +77,7 @@ async function updatePrompts(stories: string[]): Promise<string[]> {
             [story]
         );
 
-        prompts.push(promptQuery.rows[0].prompt);
+        prompts.push((promptQuery.rows[0] as any).prompt);
     }
 
     return prompts;
@@ -96,7 +96,7 @@ async function updateTitles(stories: string[]): Promise<string[]> {
             [story]
         );
 
-        titles.push(titleQuery.rows[0].title);
+        titles.push((titleQuery.rows[0] as any).title);
     }
 
     return titles;
@@ -115,7 +115,7 @@ async function updateMessageIDs(stories: string[]): Promise<string[]> {
             [story]
         );
 
-        messageIDs.push(messageIDQuery.rows[0].messageid);
+        messageIDs.push((messageIDQuery.rows[0] as any).messageid);
     }
 
     return messageIDs;
@@ -143,7 +143,7 @@ export async function getStory(storyID: string): Promise<string> {
             `SELECT (story) FROM stories WHERE id = $1`,
             [storyID]
         );
-        const story = storyQuery.rows[0].story;
+        const story = (storyQuery.rows[0] as any).story;
         return story;
     } catch (err) {
         console.error(err);
@@ -158,6 +158,6 @@ export async function getUserID(sessionId: string): Promise<string>
         [sessionId]
     );
 
-    const userId = userIdQuery.rows[0].userid;
+    const userId = (userIdQuery.rows[0] as any).userid;
     return userId;
 }

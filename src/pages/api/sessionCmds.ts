@@ -47,7 +47,7 @@ async function getUserId(username: string): Promise<number> {
         `SELECT (id) FROM users WHERE name = $1`,
         [username]
     );
-    return userQuery.rows[0].id;
+    return (userQuery.rows[0] as any).id;
 }
 
 async function addUser(req: NextApiRequest, res: NextApiResponse) {
@@ -104,7 +104,7 @@ async function passwordMatches(userId: number, password: string): Promise<boolea
         [userId]
     );
 
-    if (passwordQuery.rows[0].password == password) {
+    if ((passwordQuery.rows[0] as any).password == password) {
         return true;
     }
 
@@ -122,7 +122,7 @@ async function signUp(username: string, password: string): Promise<string> {
         `SELECT (id) FROM users WHERE name = $1`,
         [username]
     );
-    const id = idQuery.rows[0].id;
+    const id = (idQuery.rows[0] as any).id;
     const addPassword = await query(
         `INSERT INTO userpasswords (id, password) VALUES ($1, $2);`,
         [id, password]
@@ -145,7 +145,7 @@ async function signInWithGoogle(username: string): Promise<string> {
             [username]
         );
 
-        const userID = userIDQuery.rows[0].id;
+        const userID = (userIDQuery.rows[0] as any).id;
 
         const sessionId = await createSession(userID);
         return sessionId;
@@ -161,7 +161,7 @@ async function signInWithGoogle(username: string): Promise<string> {
         [username]
     );
 
-    const userID = userIDQuery.rows[0].id;
+    const userID = (userIDQuery.rows[0] as any).id;
 
     const sessionId = await createSession(userID);
     return sessionId;
