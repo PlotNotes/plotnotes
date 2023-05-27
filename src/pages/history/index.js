@@ -42,10 +42,9 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {stories.map((story, index) => (
-                    <div>
+                    <div key={messageid[index]}>
                         <Link href={`/${messageid[index]}`}>
                             <Box
-                                key={index} 
                                 justifyContent="center"
                                 alignItems="center">
                                     <Heading
