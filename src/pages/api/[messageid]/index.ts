@@ -13,9 +13,6 @@ export default async function storyHistory(req: NextApiRequest, res: NextApiResp
 }
 
 async function postRequest(req: NextApiRequest, res: NextApiResponse) {
-
-    console.log("post request");
-
     const messageid = req.query.messageid as string;
     const prompt = req.body.prompt as string;
     const sessionId = req.cookies.token;
@@ -26,7 +23,6 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const userId = await getUserID(sessionId);
-    console.log("userID ", userId);
 
     // Gets the iterationID of the story associated with the given messageID
     const iterationIDQuery = await query(
@@ -35,7 +31,6 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     );
 
     const iterationID = iterationIDQuery.rows[0].iterationid;
-    console.log("iterationID ", iterationID);
     let parentID = "0";
     if (iterationID == 0) {
         parentID = messageid;
@@ -49,14 +44,9 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
         parentID = parentIDQuery.rows[0].parentid;
     }
 
-    console.log("parentID ", parentID);
-
     // Gets the title of the parent story
     const parentTitle = await getTitle(messageid);
 
-    console.log("parentTitle ", parentTitle);
-
-    console.log("messageid ", messageid)
     // Gets every previous story in this iteration and puts it in a string array
     const storiesQuery = await query(
         `SELECT (message) FROM history WHERE messageid = $1 OR parentid = $1`,
@@ -117,7 +107,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     // If there is no parentID, meaning it is 0, then it is the first story and should be returned along with the title
     if (parentStoryID == 0) {
         const parentTitle = await getTitle(messageid);
-        res.status(200).send({ stories: [messageIDQuery.rows[0].message], parentTitle: parentTitle });
+        res.status(200).send({ stories: [messageIDQuery.rows[0].message], parentTitle: parentTitle, messageIDs: [messageid] });
         return;
     }
 
@@ -126,17 +116,25 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
         [parentStoryID]
     );
     
-    // Returns the parent and every story that has the parentID as the parent as an array of strings
+    // Returns the parent and every story that has the parentID as the parent as an array of strings, so long as the messageID is
+    // less than the given one
     const parentStory = parentStoryQuery.rows[0].message;
     const childStoriesQuery = await query(
-        `SELECT (message) FROM history WHERE parentid = $1`,
-        [parentStoryID]
+        `SELECT (message, messageid) FROM history WHERE parentid = $1 AND messageid <= $2`,
+        [parentStoryID, messageid]
     );
-
     const childStories = childStoriesQuery.rows;
     const childStoriesArray = [];
+
+    const messageIDArray = [];
+    messageIDArray.push(parentStoryID)
     for (let i = 0; i < childStories.length; i++) {
-        childStoriesArray.push(childStories[i].message);
+        const messageId = childStories[i].row.split(',').pop().trim().replace(')', ''); // This gets the message ID
+        let message = childStories[i].row.split(',"')[0].trim().replace('("', ''); // This gets the message
+        const removeIndex = message.lastIndexOf('",');
+        message = message.substring(0, removeIndex);
+        childStoriesArray.push(message);
+        messageIDArray.push(messageId);
     }
 
     const parentTitle = await getTitle(parentStoryID);
@@ -147,7 +145,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
         stories.push(childStoriesArray[i]);
     }
 
-    res.status(200).send({ stories: stories, parentTitle: parentTitle });
+    res.status(200).send({ stories: stories, parentTitle: parentTitle, messageIDs: messageIDArray });
 }
 
 async function getTitle(messageid: string): Promise<string> {

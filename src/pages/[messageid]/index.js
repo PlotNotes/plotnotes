@@ -7,8 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 
-export default function Page({ sessionID, stories, title }) {
-    console.log('stories: ', stories);
+export default function Page({ sessionID, stories, title, messageIDs }) {
     // Gets the messageID from the URL
     const router = useRouter();
     const { messageid } = router.query;
@@ -82,7 +81,7 @@ export default function Page({ sessionID, stories, title }) {
             justifyContent="center"
             alignItems="center">
                     {stories.map((story, index) => (
-                        <Link href={`/${messageid}/${index+1}`}>
+                        <Link href={`/${messageIDs[index]}`}>
                             <Box
                                 key={index}
                                 display="flex"
@@ -189,6 +188,7 @@ export async function getServerSideProps(ctx) {
         // Stores storyInfo.response as an array of strings
         const title = storyInfo.parentTitle; 
         const stories = storyInfo.stories;
+        const messageIDs = storyInfo.messageIDs;
 
-        return { props: { sessionID, stories, title } };
+        return { props: { sessionID, stories, title, messageIDs } };
 }

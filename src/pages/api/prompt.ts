@@ -65,7 +65,6 @@ async function createStoryName(story: string): Promise<string> {
 }
 
 export async function continueStory(prompt: string, oldStories: string[]): Promise<string> {
-  console.log("oldStories: " + oldStories);
   const openai = getOpenAIClient();
 
   let messages = [];
@@ -87,15 +86,12 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
         messages,
         max_tokens: max_tokens,
       };
-      console.log("Iteration ", i)
-      console.log("summaryPrompt: " + summaryPrompt);
       const completion = await openai.createChatCompletion(summaryPrompt);
       summary += completion.data.choices[0].message!.content.trim() + " ";
     }
   } catch (err) {
     console.log(err);
   }
-  console.log("summary: " + summary);
   let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token`
 
   messages = [];
@@ -113,6 +109,5 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
   };
 
   const completion = await openai.createChatCompletion(continuePrompt);
-  console.log(completion.data.choices[0].message!.content.trim());
   return completion.data.choices[0].message!.content.trim();
 }
