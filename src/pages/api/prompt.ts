@@ -37,9 +37,13 @@ export async function getStory(req: any) {
 }
 
 export default async function handler(req: any, res: any) {
-  const story = await getStory(req);
-  const storyName = await createStoryName(story);
-  res.status(200).send({story: story, storyName: storyName});
+  const createShortStory = req.body.shortStory;
+
+  if (createShortStory) {
+    const story = await getStory(req);
+    const storyName = await createStoryName(story);
+    res.status(200).send({story: story, storyName: storyName});
+  }
 }
 
 async function createStoryName(story: string): Promise<string> {

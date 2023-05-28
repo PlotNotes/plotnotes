@@ -17,7 +17,7 @@ export default function Prompt({ sessionID }) {
     setPrompt(ev.target.value);
   };
 
-  const handleSubmit = async (ev) => {
+  const handleShortStory = async (ev) => {
     ev.preventDefault();
     setIsGenerating(true);
     try {
@@ -27,7 +27,7 @@ export default function Prompt({ sessionID }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ prompt:prompt }),
+                body: JSON.stringify({ prompt:prompt, shortStory: true }),
             }
         );
         const storyInfo = await response.json();        
@@ -53,6 +53,42 @@ export default function Prompt({ sessionID }) {
         console.log('Error: ', err);
     }
   };
+
+    const handleChapters = async (ev) => {
+        ev.preventDefault();
+        setIsGenerating(true);
+        try {
+            const response = await fetch('/api/prompt',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt:prompt, shortStory: false }),
+                }
+            );
+            const storyInfo = await response.json();
+            let newStory = storyInfo.story.split('response: ')[0];
+            let storyName = storyInfo.storyName.split('response: ')[0];
+            setStory(newStory);
+
+            await fetch('/api/storyCmds',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sessionId: sessionID,
+                                            story: newStory,
+                                            storyName: storyName
+                    }),
+                }
+            );
+            setIsGenerating(false);
+        } catch(err) {
+            console.log('Error: ', err);
+        }
+    };
 
   const handleClick = async () => {
     setButtonText('Copied');
@@ -112,6 +148,8 @@ export default function Prompt({ sessionID }) {
                     <Textarea
                         block
                         value={prompt}
+                        cols={60}
+                        rows={10}
                         onChange={handleChange}
                         onKeyDown={(ev) => {
                             if (ev.key === 'Enter') {
@@ -119,14 +157,35 @@ export default function Prompt({ sessionID }) {
                             }
                         }}
                     />
-                    <Button variant='primary' onClick={handleSubmit} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
-                        <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
-                            <Box>Submit</Box>
-                                <Box>
-                                    <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
-                                </Box>
-                        </Box>
-                    </Button>
+                    <Box
+                        display="flex"
+                        flexDirection="row"
+                        justifyContent="center"
+                        alignItems="center">
+                        <Button 
+                            variant='primary' 
+                            onClick={handleShortStory} 
+                            disabled={isGenerating} 
+                            sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+                                <Box>Create Short Story</Box>            
+                        </Button>
+
+                        <Button
+                            variant='primary'
+                            onClick={handleChapters}
+                            disabled={isGenerating}
+                            sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+                                <Box>Create Chapters</Box>
+                        </Button>
+                    </Box>
+                    <Spinner
+                        sx={{
+                            display: isGenerating ? 'block' : 'none',
+                            marginLeft: 'auto',
+                            marginRight: 'auto',
+                            mt: 3,
+                        }}
+                    />
                 </Box>
                 <Box
                     bg="gray.2"
