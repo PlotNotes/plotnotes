@@ -93,7 +93,7 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
       summary += completion.data.choices[0].message!.content.trim() + " ";
     }
   } catch (err) {
-    console.log(err);
+    console.log("prompt error: ", err);
   }
   let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token`
 
