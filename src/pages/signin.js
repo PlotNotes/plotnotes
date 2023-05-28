@@ -5,6 +5,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
 import {useRouter} from 'next/router'
+import * as jwt from 'jsonwebtoken'
 
 export default function SignIn() {
     const router = useRouter()
@@ -165,7 +166,8 @@ export default function SignIn() {
                 <Box>
                     <GoogleLogin
                         onSuccess={async credentialResponse => {
-                            addGoogleUser(credentialResponse.clientId);
+                            const token = jwt.decode(credentialResponse.credential);
+                            addGoogleUser(token.email);
                         }}
                         onError={() => {
                         alert('Error logging in with Google, try again or use the sign up form.');

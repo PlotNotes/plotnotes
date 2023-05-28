@@ -44,7 +44,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
             Router.push(`/${messageID}`);
         } catch(err) {
-            console.log('Error: ', err);
+            console.log('messageid Error: ', err);
         }
 
         setIsGenerating(false);
@@ -185,7 +185,7 @@ export async function getServerSideProps(ctx) {
     
         // If the json has an error saying the messageID does not belong to the user, redirect to the home page
         if (storyInfo.error) {
-            console.log(storyInfo.error);
+            console.log("storyInfo error: ", storyInfo.error);
             return {
                 redirect: {
                   permanent: false,
