@@ -13,8 +13,11 @@ export default function Home() {
       <Head>
         <title>PlotNotes</title>
       </Head>
-      <button className="absolute top-0 right-0 mt-4 mr-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        <a onClick={() => Router.push('/signin')}>Login</a>
+      <button 
+        className="absolute top-0 right-0 mt-4 mr-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        onClick={() => Router.push('/signin')}
+      >
+        Login
       </button>
       <Image
         src="/images/PlotNotesLogo.png"
@@ -29,8 +32,11 @@ export default function Home() {
         <p className="font-inter text-2xl mt-3">
           A place to write your stories and share them with the world
         </p>
-        <button className="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          <a onClick={() => Router.push('/prompt')}>Start Writing</a>
+        <button 
+          className="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => Router.push('/prompt')}
+        >
+          Start Writing
         </button>
       </main>
     </div>

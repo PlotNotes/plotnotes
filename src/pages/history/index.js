@@ -103,8 +103,8 @@ export async function getServerSideProps(ctx) {
     }
     let sessionID = sess.rows[0].id;
 
-    const baseURL = process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}` 
+    const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
     : 'http://localhost:3000';
 
     const axiosInstance = axios.create({
@@ -118,7 +118,7 @@ export async function getServerSideProps(ctx) {
         'Cookie': `token=${sessionID}`,
     },
     });
-    
+
     const historyResponse = await historyQuery.data;
     
     let stories = historyResponse.stories;

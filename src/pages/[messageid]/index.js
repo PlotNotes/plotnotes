@@ -163,8 +163,8 @@ export async function getServerSideProps(ctx) {
     }
     let sessionID = sess.rows[0].id;
 
-    const baseURL = process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}` 
+    const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
     : 'http://localhost:3000';
 
     const axiosInstance = axios.create({
@@ -185,7 +185,7 @@ export async function getServerSideProps(ctx) {
     
         // If the json has an error saying the messageID does not belong to the user, redirect to the home page
         if (storyInfo.error) {
-            console.log("storyInfo error: ", storyInfo.error);
+            console.log("storyInfo error:", storyInfo.error);
             return {
                 redirect: {
                   permanent: false,
