@@ -1,9 +1,9 @@
 ## PlotNotes
-Welcome to PlotNotes, a dynamic web application designed to generate interactive and captivating stories using the power of OpenAI's GPT-4. PlotNotes utilizes Next.js for a seamless and robust user experience, providing you with AI-powered stories based on your inputs. Check out the live application on plotnotes.ai!
+Welcome to PlotNotes, a dynamic web application designed to generate interactive and captivating stories using the power of OpenAI's GPT. PlotNotes utilizes Next.js for a seamless and robust user experience, providing you with AI-powered stories based on your inputs. Check out the live application on plotnotes.ai!
 
 ## Features
 Next.js for an optimal user experience with server-side rendering.
-OpenAI GPT-4 integration for advanced story generation.
+OpenAI GPT integration for advanced story generation.
 User authentication and personal dashboards.
 Capability to save, share, and publish stories.
 
