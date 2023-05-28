@@ -101,7 +101,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
         `SELECT (parentid) FROM history WHERE messageid = $1`,
         [messageid]
     );
-    
+    console.log(parentIdQuery.rows);
     const parentStoryID = (parentIdQuery.rows[0] as any ).parentid;
 
     // If there is no parentID, meaning it is 0, then it is the first story and should be returned along with the title

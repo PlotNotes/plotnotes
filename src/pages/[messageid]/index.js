@@ -6,6 +6,7 @@ import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
+import axios from 'axios';
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
     // Gets the messageID from the URL
@@ -161,7 +162,16 @@ export async function getServerSideProps(ctx) {
       };
     }
     let sessionID = sess.rows[0].id;
-    const response = await fetch(`/api/${messageID}`,
+
+    const baseURL = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : 'http://localhost:3000';
+
+    const axiosInstance = axios.create({
+    baseURL: baseURL
+    });
+
+    const response = await axiosInstance.get(`/api/${messageID}`,
             {
                 method: 'GET',
                 headers: {
@@ -171,7 +181,7 @@ export async function getServerSideProps(ctx) {
             }
         );
         
-        const storyInfo = await response.json();
+        const storyInfo = await response.data;
     
         // If the json has an error saying the messageID does not belong to the user, redirect to the home page
         if (storyInfo.error) {

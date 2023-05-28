@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
-import { type } from 'os';
+import axios from 'axios';
 
 export default function History({sessionID, stories, prompts, titles, messageid}) {    
     // Upon loading the page, the user is presented with a list of their previous stories
@@ -103,16 +103,23 @@ export async function getServerSideProps(ctx) {
     }
     let sessionID = sess.rows[0].id;
 
-    let historyQuery = await fetch(`/api/storyCmds`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cookie': `token=${sessionID}`,
-            },
-        }
-    );
-    const historyResponse = await historyQuery.json();
+    const baseURL = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : 'http://localhost:3000';
+
+    const axiosInstance = axios.create({
+    baseURL: baseURL
+    });
+
+    // Then use axiosInstance instead of axios
+    let historyQuery = await axiosInstance.get('/api/storyCmds', {
+    headers: {
+        'Content-Type': 'application/json',
+        'Cookie': `token=${sessionID}`,
+    },
+    });
+    
+    const historyResponse = await historyQuery.data;
     
     let stories = historyResponse.stories;
     let prompts = historyResponse.prompts;
