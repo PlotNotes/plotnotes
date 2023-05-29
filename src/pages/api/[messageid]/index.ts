@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
 import Cookies from 'cookies';
-import { getUserID } from '../storyCmds';
+import { getUserID } from '../shortStoryCmds';
 import { continueStory } from '../prompt';
 
 export default async function storyHistory(req: NextApiRequest, res: NextApiResponse) {
@@ -26,7 +26,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // Gets the iterationID of the story associated with the given messageID
     const iterationIDQuery = await query(
-        `SELECT (iterationid) FROM history WHERE messageid = $1`,
+        `SELECT (iterationid) FROM shortstories WHERE messageid = $1`,
         [messageid]
     );
     const iterationID = (iterationIDQuery.rows[0] as any).iterationid;
@@ -36,7 +36,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     } else {
         // Gets the parentID of the story associated with the given messageID
         const parentIDQuery = await query(
-            `SELECT (parentid) FROM history WHERE messageid = $1`,
+            `SELECT (parentid) FROM shortstories WHERE messageid = $1`,
             [messageid]
         );
 
@@ -48,7 +48,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // Gets every previous story in this iteration and puts it in a string array
     const storiesQuery = await query(
-        `SELECT (message) FROM history WHERE messageid = $1 OR parentid = $1`,
+        `SELECT (message) FROM shortstories WHERE messageid = $1 OR parentid = $1`,
         [parentID]
     );
 
@@ -62,12 +62,12 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // Inserts the new story into the database, adding 1 to the iterationID
     await query(
-        `INSERT INTO history (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
+        `INSERT INTO shortstories (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
         [iterationID + 1, userId, story, prompt, parentTitle, parentID]
     );
 
     const messageIDQuery = await query(
-        `SELECT (messageid) FROM history WHERE message = $1`,
+        `SELECT (messageid) FROM shortstories WHERE message = $1`,
         [story]
     );
 
@@ -87,7 +87,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     // Checks to see if the messageID belongs to the user requesting it
     const userId = await getUserID(sessionId);
     const messageIDQuery = await query(
-        `SELECT (message) FROM history WHERE userid = $1 AND messageid = $2`,
+        `SELECT (message) FROM shortstories WHERE userid = $1 AND messageid = $2`,
         [userId, messageid]
     );
 
@@ -98,10 +98,9 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // Gets the parent story from the database
     const parentIdQuery = await query(
-        `SELECT (parentid) FROM history WHERE messageid = $1`,
+        `SELECT (parentid) FROM shortstories WHERE messageid = $1`,
         [messageid]
     );
-    console.log(parentIdQuery.rows);
     const parentStoryID = (parentIdQuery.rows[0] as any ).parentid;
 
     // If there is no parentID, meaning it is 0, then it is the first story and should be returned along with the title
@@ -112,7 +111,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const parentStoryQuery = await query(
-        `SELECT (message) FROM history WHERE messageid = $1`,
+        `SELECT (message) FROM shortstories WHERE messageid = $1`,
         [parentStoryID]
     );
     
@@ -120,7 +119,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     // less than the given one
     const parentStory = (parentStoryQuery.rows[0] as any).message;
     const childStoriesQuery = await query(
-        `SELECT (message, messageid) FROM history WHERE parentid = $1 AND messageid <= $2`,
+        `SELECT (message, messageid) FROM shortstories WHERE parentid = $1 AND messageid <= $2`,
         [parentStoryID, messageid]
     );
     const childStories = childStoriesQuery.rows;
@@ -151,7 +150,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
 async function getTitle(messageid: string): Promise<string> {
     // Gets the title of the parent story
     const parentTitleQuery = await query(
-        `SELECT (title) FROM history WHERE messageid = $1`,
+        `SELECT (title) FROM shortstories WHERE messageid = $1`,
         [messageid]
     );
     

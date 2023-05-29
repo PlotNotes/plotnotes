@@ -112,7 +112,7 @@ export async function getServerSideProps(ctx) {
     });
 
     // Then use axiosInstance instead of axios
-    let historyQuery = await axiosInstance.get('/api/storyCmds', {
+    let historyQuery = await axiosInstance.get('/api/shortStoryCmds', {
     headers: {
         'Content-Type': 'application/json',
         'Cookie': `token=${sessionID}`,

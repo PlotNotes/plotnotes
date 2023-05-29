@@ -35,7 +35,7 @@ export default function Prompt({ sessionID }) {
         let storyName = storyInfo.storyName.split('response: ')[0];
         setStory(newStory);
         
-        await fetch('/api/storyCmds',
+        await fetch('/api/shortStoryCmds',
             {
                 method: 'POST',
                 headers: {
@@ -64,26 +64,36 @@ export default function Prompt({ sessionID }) {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ prompt:prompt, shortStory: false }),
+                    body: JSON.stringify({  prompt: prompt, 
+                                            shortStory: false }),
                 }
             );
             const storyInfo = await response.json();
-            let newStory = storyInfo.story.split('response: ')[0];
-            let storyName = storyInfo.storyName.split('response: ')[0];
-            setStory(newStory);
+            console.log('storyInfo: ', storyInfo);
+            
+            // The response is split into an array of chapters, and a story name
+            let chapters = storyInfo.chapters;
+            let storyName = storyInfo.storyName;
 
-            await fetch('/api/storyCmds',
+            console.log('chapters: ', chapters);
+
+            setStory(chapters[0]);
+
+            const insertChapter = await fetch('/api/chapterCmds',
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ sessionId: sessionID,
-                                            story: newStory,
-                                            storyName: storyName
+                    body: JSON.stringify({  sessionid: sessionID,
+                                            story: chapters.join('\n'),
+                                            storyName: storyName,
+                                            prompt: prompt,
                     }),
                 }
             );
+            const chapterInfo = await insertChapter.json();
+            console.log('insertChapter: ', chapterInfo);
             setIsGenerating(false);
         } catch(err) {
             console.log('Error: ', err);
