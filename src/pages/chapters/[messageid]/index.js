@@ -92,19 +92,21 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                 justifyContent="center"
                 alignItems="center"
                 bg="gray.50">
+                    <Heading
+                        fontSize={24}
+                        fontWeight="bold"
+                        color="black"
+                        sx={{ paddingTop: 4 }}>
+                        {storyNames[0]}
+                    </Heading>
+                    
                     {/* Creates a map for all provided chapters. There should be a copy button on the right side of each textarea */}
                     { chapters.map((chapter, index) => (
                         <div key={messageIDs[index]}>
                             <Link href={`/chapters/${messageIDs[index]}`}>
                                 <Box
                                     justifyContent="center"
-                                    alignItems="center">
-                                        <Heading
-                                            fontSize={24}
-                                            fontWeight="bold"
-                                            color="black">
-                                            {storyNames[index]}
-                                        </Heading>
+                                    alignItems="center">                                        
                                         <Box
                                             display="flex"
                                             flexDirection="row"

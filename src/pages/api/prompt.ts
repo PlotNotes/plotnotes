@@ -13,7 +13,7 @@ export function getOpenAIClient() {
 export function constructPrompt(prompt: string) {
   const max_tokens = 4096;
   let messages = [];
-  let content = `Write a story about '${prompt}', try to avoid using 'Once upon a time'`
+  let content = `Write a story about '${prompt}', try to avoid using 'Once upon a time'.`
 
   messages.push({
       "role": ChatCompletionRequestMessageRoleEnum.User,
@@ -62,7 +62,7 @@ async function writeChapter(prompt: string, chapters: string[]): Promise<string>
   let messages = [];
 
   if (chapters.length == 0) {
-    let content = `Write the first chapter of a story about '${prompt}', try to avoid using 'Once upon a time'`
+    let content = `Write the first chapter of a story about '${prompt}', try to avoid using 'Once upon a time'.`
     const max_tokens = 4096 - content.length;
 
     messages.push({
@@ -90,7 +90,7 @@ async function createStoryName(story: string): Promise<string> {
   const openai = getOpenAIClient();
 
   let messages = [];
-  let content = `Create a name for the story, include nothing except the name of the story: '${story}'`
+  let content = `Create a name for the story, include nothing except the name of the story: '${story}'.`
 
   messages.push({
       "role": ChatCompletionRequestMessageRoleEnum.User,
@@ -124,7 +124,7 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
   } catch (err) {
     console.log("prompt error: ", err);
   }
-  let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token`
+  let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token.`
 
   messages = [];
   messages.push({
@@ -164,7 +164,7 @@ export async function continueChapters(prompt: string, previousChapters: string[
   const openai = getOpenAIClient();
 
   let messages = [];
-  let content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token`
+  let content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token.`
 
   messages.push({
       "role": ChatCompletionRequestMessageRoleEnum.User,
@@ -172,7 +172,7 @@ export async function continueChapters(prompt: string, previousChapters: string[
   })
 
   const max_tokens = 4096 - content.length;
-
+  console.log("max tokens: ", max_tokens);
   const continuePrompt = {
     model: "gpt-3.5-turbo",
     messages,
