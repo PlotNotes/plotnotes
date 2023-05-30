@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Box, PageLayout, Heading, Header, Button, Textarea, Tooltip } from '@primer/react';
+import React, { useState } from 'react';
+import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -7,9 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 
-export default function History({sessionID, stories, prompts, titles, messageid}) {    
-    // Upon loading the page, the user is presented with a list of their previous stories
-    // Each story is displayed as a button that, when clicked, will display the story in a text area below the list
+export default function ChapterDisplay({ sessionID, chapterNames, seriesIDs, chapters }) {
     
     return (
         <div>
@@ -25,11 +23,11 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                     </Link>
                 </Header.Item>
                 <Header.Item>
-                    <Link href="/prompt">
-                        <Tooltip aria-label="Prompt" direction="e" noDelay >
-                            {/* <Image src="/images/PromptIcon.png" alt="Prompt" height={70} width={90} /> */}
-                        </Tooltip>
-                    </Link>
+                    <Button variant='primary'>
+                        <Link href="/shortStories">
+                            Short Stories
+                        </Link>
+                    </Button>
                 </Header.Item>
             </Header>
             <Box
@@ -41,9 +39,9 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                 {/* Creates a list for each item in the history array by calling the history method above */}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
-                {stories.map((story, index) => (
-                    <div key={messageid[index]}>
-                        <Link href={`/${messageid[index]}`}>
+                {chapters.map((chapter, index) => (                    
+                    <div key={seriesIDs[index]}>
+                        <Link href={`/chapters/${seriesIDs[index]}`}>
                             <Box
                                 justifyContent="center"
                                 alignItems="center">
@@ -51,7 +49,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                                         fontSize={24}
                                         fontWeight="bold"
                                         color="black">
-                                        {titles[index]}
+                                        {chapterNames[index]}
                                     </Heading>
                                     
                                     <Box
@@ -63,7 +61,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                                             disabled
                                             id={`story-${index}`}
                                             name={`story-${index}`}
-                                            value={story}
+                                            value={chapter.replace('"', '')}
                                             aria-label="Story"
                                             cols={90} 
                                             rows={20}
@@ -73,7 +71,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                         </Link>
                             <Button
                             onClick={() => {
-                                navigator.clipboard.writeText(story);
+                                navigator.clipboard.writeText(chapter.replace('"', ''));
                             }}
                             aria-label="Copy"
                             color="black"
@@ -89,6 +87,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
 }
 
 export async function getServerSideProps(ctx) {
+
     const c = cookies(ctx);
     const sess = await loadSession(c.token);
 
@@ -96,13 +95,14 @@ export async function getServerSideProps(ctx) {
       return {
         redirect: {
           permanent: false,
-          destination: "/signin?from=/history",
+          destination: "/signin?from=/chapters",
         },
         props:{ },
       };
     }
     let sessionID = sess.rows[0].id;
 
+    // Makes a fetch request to get the user's chapter history
     const baseURL = process.env.NODE_ENV === 'production' 
     ? 'https://plotnotes.ai' 
     : 'http://localhost:3000';
@@ -111,20 +111,33 @@ export async function getServerSideProps(ctx) {
     baseURL: baseURL
     });
 
-    // Then use axiosInstance instead of axios
-    let historyQuery = await axiosInstance.get('/api/shortStoryCmds', {
-    headers: {
-        'Content-Type': 'application/json',
-        'Cookie': `token=${sessionID}`,
-    },
-    });
-
-    const historyResponse = await historyQuery.data;
+    const response = await axiosInstance.get(`/api/chapterCmds`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cookie': `token=${sessionID}`
+                },
+            }
+        );
     
-    let stories = historyResponse.stories;
-    let prompts = historyResponse.prompts;
-    let titles = historyResponse.titles;
-    let messageid = historyResponse.messageIDs;
+    const chapterInfo = await response.data;
 
-    return { props: { sessionID, stories, prompts, titles, messageid } };
+    // If the json has an error saying the messageID does not belong to the user, redirect to the home page
+    if (chapterInfo.error) {
+        console.log("chapterInfo error:", chapterInfo.error);
+        return {
+            redirect: {
+                permanent: false,
+                destination: `/`,
+            },
+            props:{ },
+        };
+    }
+
+    const chapterNames = chapterInfo.storyNames;
+    const seriesIDs = chapterInfo.seriesIDs;
+    const chapters = chapterInfo.chapters;
+
+    return { props: { sessionID, chapterNames, seriesIDs, chapters } };
 }

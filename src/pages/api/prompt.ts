@@ -45,30 +45,25 @@ export default async function handler(req: any, res: any) {
     res.status(200).send({story: story, storyName: storyName});
   } else {
 
-    console.log("creating chapters");
     const prompt = req.body.prompt;
     const storyName = await createStoryName(prompt);
-    console.log("story name: ", storyName);
+
     let chapters: string[] = [];
 
     // Writes 1 chapter as a test, TODO: write more chapters
     let chapter = await writeChapter(prompt, chapters);
     chapters.push(chapter);
 
-    console.log("chapters: ", chapters);
     res.status(200).send({chapters: chapters, storyName: storyName});
   }
 }
 
 async function writeChapter(prompt: string, chapters: string[]): Promise<string> {
-  console.log("writing chapter");
   let messages = [];
 
   if (chapters.length == 0) {
     let content = `Write the first chapter of a story about '${prompt}', try to avoid using 'Once upon a time'`
     const max_tokens = 4096 - content.length;
-
-    console.log(max_tokens);
 
     messages.push({
         "role": ChatCompletionRequestMessageRoleEnum.User,
@@ -84,7 +79,7 @@ async function writeChapter(prompt: string, chapters: string[]): Promise<string>
 
     const openai = getOpenAIClient();
     const completion = await openai.createChatCompletion(chapterPrompt);
-    console.log("chapter: ", completion.data.choices[0].message!.content.trim());
+
     return completion.data.choices[0].message!.content.trim();
   }
 
@@ -124,7 +119,7 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
     for (let i = 0; i < oldStories.length; i++) {
       summary = oldStories[i]
     
-      let content = `Summarize the following: '${oldStories}'`
+      let content = `Summarize the following: '${summary}'`
       messages.push({
           "role": ChatCompletionRequestMessageRoleEnum.User,
           "content": content

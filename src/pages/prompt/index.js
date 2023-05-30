@@ -69,13 +69,10 @@ export default function Prompt({ sessionID }) {
                 }
             );
             const storyInfo = await response.json();
-            console.log('storyInfo: ', storyInfo);
             
             // The response is split into an array of chapters, and a story name
             let chapters = storyInfo.chapters;
             let storyName = storyInfo.storyName;
-
-            console.log('chapters: ', chapters);
 
             setStory(chapters[0]);
 
@@ -93,7 +90,6 @@ export default function Prompt({ sessionID }) {
                 }
             );
             const chapterInfo = await insertChapter.json();
-            console.log('insertChapter: ', chapterInfo);
             setIsGenerating(false);
         } catch(err) {
             console.log('Error: ', err);
@@ -131,11 +127,18 @@ export default function Prompt({ sessionID }) {
                 </Link>
             </Header.Item>
             <Header.Item>
-                <Tooltip aria-label="History" direction="e" noDelay >
-                    <Link href="/history">
-                        <Image src="/images/history.png" alt="History" height={70} width={90} />
+                <Button variant='primary'>
+                    <Link href="/shortStories">
+                        Short Stories
                     </Link>
-                </Tooltip>
+                </Button>
+            </Header.Item>
+            <Header.Item>
+                <Button variant='primary'> 
+                    <Link href="/chapters">
+                        Chapters
+                    </Link>
+                </Button>
             </Header.Item>
         </Header>
         <Box

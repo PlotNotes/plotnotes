@@ -126,7 +126,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     try {
         const userId = await getUserID(sessionId);
         const storyIdQuery = await query(
-            `INSERT INTO history (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
+            `INSERT INTO shortstories (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
             [iterationId, userId, story, prompt, storyName, 0]
         );
 

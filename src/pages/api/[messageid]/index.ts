@@ -119,22 +119,13 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     // less than the given one
     const parentStory = (parentStoryQuery.rows[0] as any).message;
     const childStoriesQuery = await query(
-        `SELECT (message, messageid) FROM shortstories WHERE parentid = $1 AND messageid <= $2`,
+        `SELECT message, messageid FROM shortstories WHERE parentid = $1 AND messageid <= $2`,
         [parentStoryID, messageid]
     );
     const childStories = childStoriesQuery.rows;
-    const childStoriesArray = [];
-
-    const messageIDArray = [];
-    messageIDArray.push(parentStoryID)
-    for (let i = 0; i < childStories.length; i++) {
-        const messageId = (childStories[i] as any).row.split(',').pop().trim().replace(')', ''); // This gets the message ID
-        let message = (childStories[i] as any).row.split(',"')[0].trim().replace('("', ''); // This gets the message
-        const removeIndex = message.lastIndexOf('",');
-        message = message.substring(0, removeIndex);
-        childStoriesArray.push(message);
-        messageIDArray.push(messageId);
-    }
+    
+    let childStoriesArray = childStories.map((childStory: any) => childStory.message);
+    let messageIDArray = childStories.map((childStory: any) => childStory.messageid);
 
     const parentTitle = await getTitle(parentStoryID);
     let stories = [];
