@@ -37,9 +37,53 @@ export async function getStory(req: any) {
 }
 
 export default async function handler(req: any, res: any) {
-  const story = await getStory(req);
-  const storyName = await createStoryName(story);
-  res.status(200).send({story: story, storyName: storyName});
+  const createShortStory = req.body.shortStory;
+
+  if (createShortStory) {
+    const story = await getStory(req);
+    const storyName = await createStoryName(story);
+    res.status(200).send({story: story, storyName: storyName});
+  } else {
+
+    const prompt = req.body.prompt;
+    const storyName = await createStoryName(prompt);
+
+    let chapters: string[] = [];
+
+    // Writes 1 chapter as a test, TODO: write more chapters
+    let chapter = await writeChapter(prompt, chapters);
+    chapters.push(chapter);
+
+    res.status(200).send({chapters: chapters, storyName: storyName});
+  }
+}
+
+async function writeChapter(prompt: string, chapters: string[]): Promise<string> {
+  let messages = [];
+
+  if (chapters.length == 0) {
+    let content = `Write the first chapter of a story about '${prompt}', try to avoid using 'Once upon a time'`
+    const max_tokens = 4096 - content.length;
+
+    messages.push({
+        "role": ChatCompletionRequestMessageRoleEnum.User,
+        "content": content
+    })
+
+    const chapterPrompt = {
+      model: "gpt-3.5-turbo",
+      messages,
+      max_tokens: max_tokens,
+      temperature: 0.0,
+    };
+
+    const openai = getOpenAIClient();
+    const completion = await openai.createChatCompletion(chapterPrompt);
+
+    return completion.data.choices[0].message!.content.trim();
+  }
+
+  return "";
 }
 
 async function createStoryName(story: string): Promise<string> {
@@ -75,7 +119,7 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
     for (let i = 0; i < oldStories.length; i++) {
       summary = oldStories[i]
     
-      let content = `Summarize the following: '${oldStories}'`
+      let content = `Summarize the following: '${summary}'`
       messages.push({
           "role": ChatCompletionRequestMessageRoleEnum.User,
           "content": content

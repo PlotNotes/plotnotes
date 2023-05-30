@@ -36,7 +36,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
 
 
 async function updateStories(userID: string): Promise<string[]> {
-    const storyQuery = await query(`SELECT (messageid) FROM history WHERE parentid = 0 AND userid = $1`, [userID]);
+    const storyQuery = await query(`SELECT (messageid) FROM shortstories WHERE parentid = 0 AND userid = $1`, [userID]);
 
     // Loops through the stories and makes a query for a message whose parentID is the story's messageID, and replaces the story with the most recent version
     let stories: string[] = [];
@@ -44,7 +44,7 @@ async function updateStories(userID: string): Promise<string[]> {
         const storyID = (storyQuery.rows[i] as any).messageid;
 
         const childrenStoryQuery = await query(
-            `SELECT (message) FROM history WHERE parentid = $1 ORDER BY iterationid DESC LIMIT 1`,
+            `SELECT (message) FROM shortstories WHERE parentid = $1 ORDER BY iterationid DESC LIMIT 1`,
             [storyID]
         );
 
@@ -54,7 +54,7 @@ async function updateStories(userID: string): Promise<string[]> {
         }
 
         const parentStoryQuery = await query(
-            `SELECT (message) FROM history WHERE messageid = $1`,
+            `SELECT (message) FROM shortstories WHERE messageid = $1`,
             [storyID]
         );
 
@@ -73,7 +73,7 @@ async function updatePrompts(stories: string[]): Promise<string[]> {
         const story = stories[i];
 
         const promptQuery = await query(
-            `SELECT (prompt) FROM history WHERE message = $1`,
+            `SELECT (prompt) FROM shortstories WHERE message = $1`,
             [story]
         );
 
@@ -92,7 +92,7 @@ async function updateTitles(stories: string[]): Promise<string[]> {
         const story = stories[i];
 
         const titleQuery = await query(
-            `SELECT (title) FROM history WHERE message = $1`,
+            `SELECT (title) FROM shortstories WHERE message = $1`,
             [story]
         );
 
@@ -111,7 +111,7 @@ async function updateMessageIDs(stories: string[]): Promise<string[]> {
         const story = stories[i];
 
         const messageIDQuery = await query(
-            `SELECT (messageid) FROM history WHERE message = $1`,
+            `SELECT (messageid) FROM shortstories WHERE message = $1`,
             [story]
         );
 
@@ -126,7 +126,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     try {
         const userId = await getUserID(sessionId);
         const storyIdQuery = await query(
-            `INSERT INTO history (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
+            `INSERT INTO shortstories (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
             [iterationId, userId, story, prompt, storyName, 0]
         );
 
