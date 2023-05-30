@@ -116,25 +116,10 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
   let messages = [];
   let summary = "";
   try {
-    for (let i = 0; i < oldStories.length; i++) {
-      summary = oldStories[i]
-    
-      let content = `Summarize the following: '${summary}'`
-      messages.push({
-          "role": ChatCompletionRequestMessageRoleEnum.User,
-          "content": content
-      })
-    
-      const max_tokens = 4096 - content.length;
 
-      const summaryPrompt = {
-        model: "gpt-3.5-turbo",
-        messages,
-        max_tokens: max_tokens,
-        temperature: 0.0,
-      };
-      const completion = await openai.createChatCompletion(summaryPrompt);
-      summary += completion.data.choices[0].message!.content.trim() + " ";
+    for (let i = 0; i < oldStories.length; i++) {
+      let story = oldStories[i]
+      summary += await summarize(story) + " ";
     }
   } catch (err) {
     console.log("prompt error: ", err);
@@ -158,4 +143,65 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
 
   const completion = await openai.createChatCompletion(continuePrompt);
   return completion.data.choices[0].message!.content.trim();
+}
+
+export async function continueChapters(prompt: string, previousChapters: string[]) {
+
+  const maxTokens = 4096;
+  // Summarizes each previous chapter
+  let summaries = ""
+  for (let i = 0; i < previousChapters.length; i++) {
+    const chapter = previousChapters[i];
+    const summary = await summarize(chapter);
+    summaries += summary + " ";
+  }
+
+
+  if (prompt.length + summaries.length > maxTokens) {
+    summaries = await summarize(summaries);
+  }
+
+  const openai = getOpenAIClient();
+
+  let messages = [];
+  let content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token`
+
+  messages.push({
+      "role": ChatCompletionRequestMessageRoleEnum.User,
+      "content": content
+  })
+
+  const max_tokens = 4096 - content.length;
+
+  const continuePrompt = {
+    model: "gpt-3.5-turbo",
+    messages,
+    max_tokens: max_tokens,
+    temperature: 0.0,
+  };
+
+  const completion = await openai.createChatCompletion(continuePrompt);
+  return completion.data.choices[0].message!.content.trim();
+}
+
+async function summarize(story: string): Promise<string> {
+  const openai = getOpenAIClient();
+  let messages = [];
+  let content = `Summarize the following as much as possible: '${story}'`
+      messages.push({
+          "role": ChatCompletionRequestMessageRoleEnum.User,
+          "content": content
+      })
+    
+      const max_tokens = 4096 - content.length;
+
+      const summaryPrompt = {
+        model: "gpt-3.5-turbo",
+        messages,
+        max_tokens: max_tokens,
+        temperature: 0.0,
+      };
+      const completion = await openai.createChatCompletion(summaryPrompt);
+
+      return completion.data.choices[0].message!.content.trim();
 }

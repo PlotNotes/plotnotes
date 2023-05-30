@@ -29,6 +29,13 @@ export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chap
                         </Link>
                     </Button>
                 </Header.Item>
+                <Header.Item>
+                    <Button variant='primary'>
+                        <Link href="/prompt">
+                            Prompt
+                        </Link>
+                    </Button>
+                </Header.Item>
             </Header>
             <Box
             display="flex"
@@ -39,7 +46,7 @@ export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chap
                 {/* Creates a list for each item in the history array by calling the history method above */}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
-                {chapters.map((chapter, index) => (                    
+                {chapters.map((chapter, index) => (   
                     <div key={messageIDs[index]}>
                         <Link href={`/chapters/${messageIDs[index]}`}>
                             <Box

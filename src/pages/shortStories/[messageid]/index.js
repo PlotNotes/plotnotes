@@ -9,6 +9,7 @@ import Router, { useRouter } from 'next/router'
 import axios from 'axios';
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
+
     // Gets the messageID from the URL
     const router = useRouter();
     const { messageid } = router.query;
@@ -26,7 +27,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
         ev.preventDefault();
         setIsGenerating(true);
         try {
-            const response = await fetch(`/api/${messageid}`,
+            const response = await fetch(`/api/${messageid}/shortStories`,
                 {
                     method: 'POST',
                     headers: {
@@ -66,6 +67,20 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                             </Tooltip>
                         </Link>
                     </Header.Item>
+                    <Header.Item>
+                        <Button variant='primary'>
+                            <Link href="/chapters">
+                                Chapters
+                            </Link>
+                        </Button>
+                    </Header.Item>
+                    <Header.Item>
+                        <Button variant='primary'>
+                            <Link href="/prompt">
+                                Prompt
+                            </Link>
+                        </Button>
+                    </Header.Item>
                 </Box>
                     <Header.Item>
                         <Heading
@@ -82,7 +97,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             justifyContent="center"
             alignItems="center">
                     {stories.map((story, index) => (
-                        <Link key={index} href={`/${messageIDs[index]}`}>
+                        <Link key={index} href={`/shortStories/${messageIDs[index]}`}>
                             <Box
                                 display="flex"
                                 justifyContent="center"
@@ -171,7 +186,7 @@ export async function getServerSideProps(ctx) {
     baseURL: baseURL
     });
 
-    const response = await axiosInstance.get(`/api/${messageID}`,
+    const response = await axiosInstance.get(`/api/${messageID}/shortStory`,
             {
                 method: 'GET',
                 headers: {

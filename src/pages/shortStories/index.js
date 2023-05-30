@@ -26,6 +26,13 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                 </Header.Item>
                 <Header.Item>
                     <Button variant='primary'>
+                        <Link href="/chapters">
+                            Chapters
+                        </Link>
+                    </Button>
+                </Header.Item>
+                <Header.Item>
+                    <Button variant='primary'>
                         <Link href="/prompt">
                             Prompt
                         </Link>

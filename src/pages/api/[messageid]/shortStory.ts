@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
-import Cookies from 'cookies';
 import { getUserID } from '../shortStoryCmds';
 import { continueStory } from '../prompt';
 
@@ -124,8 +123,13 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     );
     const childStories = childStoriesQuery.rows;
     
-    let childStoriesArray = childStories.map((childStory: any) => childStory.message);
-    let messageIDArray = childStories.map((childStory: any) => childStory.messageid);
+    let childStoriesArray: string[] = [];
+    let messageIDArray: string[] = [];
+    messageIDArray.push(parentStoryID);
+    for (let i = 0; i < childStories.length; i++) {
+        childStoriesArray.push((childStories[i] as any).message);
+        messageIDArray.push((childStories[i] as any).messageid);
+    }
 
     const parentTitle = await getTitle(parentStoryID);
     let stories = [];

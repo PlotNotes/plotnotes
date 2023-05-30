@@ -39,7 +39,7 @@ async function getChapter(req: NextApiRequest, res: NextApiResponse) {
     for (let i = 0; i < chapterQuery.rows.length; i++) {
         chapters.push((chapterQuery.rows[i] as any).message);
         storyNames.push((chapterQuery.rows[i] as any).name);
-        messageIDs.push((chapterQuery.rows[i] as any).seriesid);
+        messageIDs.push((chapterQuery.rows[i] as any).messageid);
     }
 
     res.status(200).send({ chapters: chapters, storyNames: storyNames, messageIDs: messageIDs });
