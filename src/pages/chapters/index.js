@@ -7,7 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 
-export default function ChapterDisplay({ sessionID, chapterNames, seriesIDs, chapters }) {
+export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chapters }) {
     
     return (
         <div>
@@ -17,7 +17,7 @@ export default function ChapterDisplay({ sessionID, chapterNames, seriesIDs, cha
             <Header>
                 <Header.Item>
                     <Link href="/">
-                        <Tooltip aria-label="Home" direction="e" noDelay >
+                        <Tooltip aria-label="Home" direction="s" noDelay >
                             <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
                         </Tooltip>
                     </Link>
@@ -40,8 +40,8 @@ export default function ChapterDisplay({ sessionID, chapterNames, seriesIDs, cha
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {chapters.map((chapter, index) => (                    
-                    <div key={seriesIDs[index]}>
-                        <Link href={`/chapters/${seriesIDs[index]}`}>
+                    <div key={messageIDs[index]}>
+                        <Link href={`/chapters/${messageIDs[index]}`}>
                             <Box
                                 justifyContent="center"
                                 alignItems="center">
@@ -49,7 +49,7 @@ export default function ChapterDisplay({ sessionID, chapterNames, seriesIDs, cha
                                         fontSize={24}
                                         fontWeight="bold"
                                         color="black">
-                                        {chapterNames[index]}
+                                        {storyNames[index]}
                                     </Heading>
                                     
                                     <Box
@@ -133,11 +133,15 @@ export async function getServerSideProps(ctx) {
             },
             props:{ },
         };
+    } else if (chapterInfo.response === 'no chapters') {
+        return {
+            props: { sessionID, storyNames: [], messageIDs: [], chapters: [] },
+        };
     }
-
-    const chapterNames = chapterInfo.storyNames;
-    const seriesIDs = chapterInfo.seriesIDs;
+    
+    const storyNames = chapterInfo.storyNames;
+    const messageIDs = chapterInfo.messageIDs;
     const chapters = chapterInfo.chapters;
 
-    return { props: { sessionID, chapterNames, seriesIDs, chapters } };
+    return { props: { sessionID, storyNames, messageIDs, chapters } };
 }

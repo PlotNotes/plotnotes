@@ -23,7 +23,7 @@ async function getChapter(req: NextApiRequest, res: NextApiResponse) {
 
     // Gets all chapters associated with the userID and has the highest chapterid
     const chapterQuery = await query(
-        `SELECT message, name, seriesid FROM chapters WHERE userid = $1 ORDER BY chapterid DESC LIMIT 1`,
+        `SELECT message, name, messageid FROM chapters WHERE userid = $1 ORDER BY chapterid DESC LIMIT 1`,
         [userID]
     );
 
@@ -31,18 +31,18 @@ async function getChapter(req: NextApiRequest, res: NextApiResponse) {
         res.status(200).send({ response: "no chapters" });
         return;
     }
-    // Returns the chapters, story names, and seriesIDs as arrays
+    // Returns the chapters, story names, and messageIDs as arrays
     const chapters: string[] = [];
     const storyNames: string[] = [];
-    const seriesIDs: string[] = [];
+    const messageIDs: string[] = [];
 
     for (let i = 0; i < chapterQuery.rows.length; i++) {
         chapters.push((chapterQuery.rows[i] as any).message);
         storyNames.push((chapterQuery.rows[i] as any).name);
-        seriesIDs.push((chapterQuery.rows[i] as any).seriesid);
+        messageIDs.push((chapterQuery.rows[i] as any).seriesid);
     }
 
-    res.status(200).send({ chapters: chapters, storyNames: storyNames, seriesIDs: seriesIDs });
+    res.status(200).send({ chapters: chapters, storyNames: storyNames, messageIDs: messageIDs });
 
 }
 

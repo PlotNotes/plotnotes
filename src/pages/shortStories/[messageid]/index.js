@@ -61,7 +61,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                 <Box display="flex" justifyContent="flex-start" width="40%">
                     <Header.Item>
                         <Link href="/">
-                            <Tooltip aria-label="Home" direction="e" noDelay >
+                            <Tooltip aria-label="Home" direction="s" noDelay >
                                 <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
                             </Tooltip>
                         </Link>
