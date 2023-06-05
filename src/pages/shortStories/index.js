@@ -10,34 +10,16 @@ import axios from 'axios';
 export default function History({sessionID, stories, prompts, titles, messageid}) {    
     // Upon loading the page, the user is presented with a list of their previous stories
     // Each story is displayed as a button that, when clicked, will display the story in a text area below the list
-    
+
     return (
         <div>
             <Head>
                 <title>PlotNotes</title>
             </Head>
             <Header>
-                <Header.Item>
-                    <Link href="/">
-                        <Tooltip aria-label="Home" direction="s" noDelay >
-                            <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
-                        </Tooltip>
-                    </Link>
-                </Header.Item>
-                <Header.Item>
-                    <Button variant='primary'>
-                        <Link href="/chapters">
-                            Chapters
-                        </Link>
-                    </Button>
-                </Header.Item>
-                <Header.Item>
-                    <Button variant='primary'>
-                        <Link href="/prompt">
-                            Prompt
-                        </Link>
-                    </Button>
-                </Header.Item>
+                <HomeButton />
+                <HeaderItem href="/prompt" text="Prompt" />
+                <HeaderItem href="/chapters" text="Chapters" />
             </Header>
             <Box
             display="flex"
@@ -49,53 +31,85 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {stories.map((story, index) => (
-                    <Box key={messageid[index]}
-                        display="flex"
-                        alignItems="center">
-                        <Link href={`/shortStories/${messageid[index]}`}>
-                            <Box
-                                justifyContent="center"
-                                alignItems="center">
-                                    <Heading
-                                        fontSize={24}
-                                        fontWeight="bold"
-                                        color="black">
-                                        {titles[index]}
-                                    </Heading>
-                                    
-                                    <Box
-                                        display="flex"
-                                        flexDirection="row"
-                                        justifyContent="center"
-                                        alignItems="center">
-                                        <Textarea
-                                            disabled
-                                            id={`story-${index}`}
-                                            name={`story-${index}`}
-                                            value={story}
-                                            aria-label="Story"
-                                            cols={90} 
-                                            rows={20}
-                                        />                                    
-                                    </Box>
-                            </Box>
-                        </Link>
-                            <Button
-                            onClick={() => {
-                                navigator.clipboard.writeText(story);
-                            }}
-                            aria-label="Copy"
-                            color="black"
-                            border="none">
-                            Copy
-                        </Button>
-                    </Box>
+                    <StoryMap story={story} index={index} />
                 ))}
 
             </Box>
         </div>
     );
 }
+
+const StoryMap = ({ story, index }) => {
+    const [buttonText, setButtonText] = useState('Copy');
+
+    const copyStory = async (story) => {
+
+        navigator.clipboard.writeText(story);
+
+        setButtonText('Copied!');
+
+        setTimeout(() => {
+            setButtonText('Copy');
+        }, 1000);
+    }
+
+    <Box
+        key={messageid[index]}
+        display="flex"
+        alignItems="center">
+            <Link href={`/shortStories/${messageid[index]}`}>
+                <Box
+                    justifyContent="center"
+                    alignItems="center">
+                        <Heading
+                            fontSize={24}
+                            fontWeight="bold"
+                            color="black">
+                            {titles[index]}
+                        </Heading>
+                </Box>
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    justifyContent="center"
+                    alignItems="center">
+                    <Textarea
+                        disabled
+                        id={`story-${index}`}
+                        name={`story-${index}`}
+                        value={story}
+                        aria-label="Story"
+                        cols={90}
+                        rows={20}
+                    />
+                </Box>
+            </Link>
+                <Button
+                onClick={() => {
+                    copyStory(story);
+                }}>
+                    {buttonText}
+            </Button>
+    </Box>
+}
+
+export const HeaderItem = ({ href, text }) => (
+    <Header.Item>
+        <Button variant='primary'>
+        <Link href={href}>{text}</Link>
+      </Button>
+    </Header.Item>
+)
+
+export const HomeButton = () => (
+    <Header.Item>
+        <Link href="/">
+            <Tooltip aria-label="Home" direction="s" noDelay >
+                <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
+            </Tooltip>
+        </Link>
+    </Header.Item>
+)
 
 export async function getServerSideProps(ctx) {
     const c = cookies(ctx);

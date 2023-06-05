@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
-import Link from 'next/link'
-import Image from 'next/image'
 import cookies from 'next-cookies'
+import Link from 'next/link'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios';
+import { HomeButton, HeaderItem } from '../index'
 
 export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
     
@@ -49,7 +49,62 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
             console.log('messageid Error: ', err);
         }
     };
+    
+    const handleEdit = async (ev) => {
+        ev.preventDefault();
 
+        try {
+            const response = await fetch(`/api/${messageid}/chapters`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': `token=${sessionID}`,
+                    },
+                    body: JSON.stringify({ prompt: prompt }),
+                }
+            );
+
+            // Redirects the user to a page where they can compare the two stories and choose to accept or deny the new one
+            const chapterInfo = await response.json();
+
+            const message = chapterInfo.message;
+
+            Router.push(`/`)
+
+        } catch(err) {
+            console.log('messageid Error: ', err);
+        }
+    };
+      
+      const ActionButton = ({ buttonText, onClick, isGenerating }) => (
+        <Button variant='primary' onClick={onClick} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+          <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
+            <Box>{buttonText}</Box>
+            <Box>
+              <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
+            </Box>
+          </Box>
+        </Button>
+      );      
+
+      const ChapterBox = ({ chapter, messageID, buttonText }) => (
+        <Box key={messageID}
+             display="flex"
+             alignContent="center">
+          <Link href={`/chapters/${messageID}`}>
+            <Box alignItems="center" sx={{ paddingBottom: 3 }}>
+              <Box display="flex" flexDirection="row" alignItems="center">
+                <Textarea disabled fontWeight="bold" color="black" cols={90} rows={20} value={chapter}/>
+              </Box>
+            </Box>
+          </Link>
+          <Button onClick={() => { copyStory(chapter); }}>
+            {buttonText}
+          </Button>
+        </Box>
+      );
+      
 
     return (
         <div>
@@ -57,34 +112,10 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                 <title>PlotNotes</title>
             </Head>
             <Header>
-                <Header.Item>
-                    <Link href="/">
-                        <Tooltip aria-label="Home" direction="s" noDelay >
-                            <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
-                        </Tooltip>
-                    </Link>
-                </Header.Item>
-                <Header.Item>
-                    <Button variant='primary'>
-                        <Link href="/shortStories">
-                            Short Stories
-                        </Link>
-                    </Button>
-                </Header.Item>
-                <Header.Item>
-                    <Button variant='primary'>
-                        <Link href="/prompt">
-                            Prompt
-                        </Link>
-                    </Button>
-                </Header.Item>
-                <Header.Item>
-                    <Button variant='primary'>
-                        <Link href="/chapters">
-                            Chapters
-                        </Link>
-                    </Button>
-                </Header.Item>
+                <HomeButton />
+                <HeaderItem href="/shortStories" text="Short Stories" />
+                <HeaderItem href="/prompt" text="Prompt" />
+                <HeaderItem href="/chapters" text="Chapters" />
             </Header>
             <Box
                 display="flex"
@@ -100,34 +131,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                     
                     {/* Creates a map for all provided chapters. There should be a copy button on the right side of each textarea */}
                     { chapters.map((chapter, index) => (
-                        <Box key={messageIDs[index]}
-                            display="flex"
-                            alignContent="center">
-                            <Link href={`/chapters/${messageIDs[index]}`}>
-                                <Box
-                                    alignItems="center"
-                                    sx={{ paddingBottom: 3 }}>                                        
-                                        <Box
-                                            display="flex"
-                                            flexDirection="row"
-                                            alignItems="center">
-                                            <Textarea
-                                                disabled
-                                                fontWeight="bold"
-                                                color="black"
-                                                cols={90}
-                                                rows={20}
-                                                value={chapter}/>                                            
-                                        </Box>
-                                </Box>
-                            </Link>
-                            <Button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(chapter);
-                                }}>
-                                {buttonText}
-                            </Button>
-                        </Box>
+                        <ChapterBox chapter={chapter} messageID={messageIDs[index]} buttonText={buttonText} />
                     ))}
                     {/* Textarea at the bottom to allow the user to add onto the existing story */}
                    <Box
@@ -147,14 +151,14 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                                 cols={90}
                                 rows={10}
                                 onChange={handleChange}/>
-                            <Button variant='primary' onClick={handleSubmit} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
-                                <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
-                                    <Box>Submit</Box>
-                                        <Box>
-                                            <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
-                                        </Box>
-                                </Box>
-                            </Button>
+                            <Box
+                                display="flex"
+                                flexDirection="row"
+                                alignItems="center"
+                                sx={{ paddingBottom: 6 }}>
+                                <ActionButton buttonText="Submit" onClick={handleSubmit} isGenerating={isGenerating} />
+                                <ActionButton buttonText="Edit" onClick={handleEdit} isGenerating={isGenerating} />
+                            </Box>
                     </Box>
             </Box>
         </div>

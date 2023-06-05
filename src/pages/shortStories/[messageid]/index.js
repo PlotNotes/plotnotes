@@ -7,6 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios';
+import { HomeButton, HeaderItem } from '../index'
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
 
@@ -70,29 +71,9 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                 <title>PlotNotes</title>
             </Head>
             <Header>
-                <Box display="flex" justifyContent="flex-start" width="40%">
-                    <Header.Item>
-                        <Link href="/">
-                            <Tooltip aria-label="Home" direction="s" noDelay >
-                                <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
-                            </Tooltip>
-                        </Link>
-                    </Header.Item>
-                    <Header.Item>
-                        <Button variant='primary'>
-                            <Link href="/chapters">
-                                Chapters
-                            </Link>
-                        </Button>
-                    </Header.Item>
-                    <Header.Item>
-                        <Button variant='primary'>
-                            <Link href="/prompt">
-                                Prompt
-                            </Link>
-                        </Button>
-                    </Header.Item>
-                </Box>                
+                <HomeButton />
+                <HeaderItem href="/chapters" text="Chapters" />
+                <HeaderItem href="/prompt" text="Prompt" />          
             </Header>
             <Box
             display="flex"

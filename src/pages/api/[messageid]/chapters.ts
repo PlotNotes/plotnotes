@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
 import { getUserID } from '../shortStoryCmds';
 import { continueChapters } from '../prompt';
+import { editChapter } from '../prompt';
 
 
 export default async function chapterHistory(req: NextApiRequest, res: NextApiResponse) {
@@ -10,8 +11,38 @@ export default async function chapterHistory(req: NextApiRequest, res: NextApiRe
         await getRequest(req, res);
     } else if (req.method == "POST") {
         await postRequest(req, res);
+    } else if (req.method == "PUT") {
+        await putRequest(req, res);
     }
 }
+
+
+async function putRequest(req: NextApiRequest, res: NextApiResponse) {
+    const messageid = req.query.messageid as string;
+    const sessionId = req.cookies.token;
+    const prompt = req.body.prompt as string;
+
+    if (!sessionId) {
+        res.status(401).send({ response: "no session id" });
+        return;
+    }
+
+    const userId = await getUserID(sessionId);
+
+    // Given the prompt, get the message associated with the messageid and edit the story according to the prompt
+    const messageQuery = await query(
+        `SELECT message FROM chapters WHERE messageid = $1`,
+        [messageid]
+    );
+
+    const message = (messageQuery.rows[0] as any).message;
+
+    const newMessage = await editChapter(prompt, message);
+    
+    // Sends the new message information back to the user so they can view it before they submit it
+    res.status(200).send({ message: newMessage });
+}
+
 
 async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     const messageid = req.query.messageid as string;
@@ -49,6 +80,8 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     res.status(200).send({ chapters: chapters, storyNames: storyNames, messageIDs: messageIDs });
 }
 
+
+
 async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     
     const { prompt, messageid } = req.body;
@@ -84,7 +117,6 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     }
     // Generates the next chapter
     const story = await continueChapters(prompt, chapters);
-    // Inserts the chapter into the db
 
     const storyNameQuery = await query(
         `SELECT name FROM chapters WHERE seriesid = $1 ORDER BY chapterid DESC LIMIT 1`,
