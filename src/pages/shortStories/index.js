@@ -31,7 +31,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {stories.map((story, index) => (
-                    <StoryMap story={story} index={index} />
+                    <StoryMap story={story} index={index} messageid={messageid} titles={titles} />
                 ))}
 
             </Box>
@@ -39,7 +39,12 @@ export default function History({sessionID, stories, prompts, titles, messageid}
     );
 }
 
-const StoryMap = ({ story, index }) => {
+const StoryMap = ({ story, index, messageid, titles }) => {
+    console.log('story: ', story);
+    console.log('index: ', index);
+    console.log('messageid: ', messageid);
+    console.log('titles: ', titles);
+
     const [buttonText, setButtonText] = useState('Copy');
 
     const copyStory = async (story) => {
@@ -53,6 +58,7 @@ const StoryMap = ({ story, index }) => {
         }, 1000);
     }
 
+    return (
     <Box
         key={messageid[index]}
         display="flex"
@@ -91,6 +97,7 @@ const StoryMap = ({ story, index }) => {
                     {buttonText}
             </Button>
     </Box>
+    );
 }
 
 export const HeaderItem = ({ href, text }) => (
