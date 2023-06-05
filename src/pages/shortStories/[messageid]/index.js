@@ -16,7 +16,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
 
     const [isGenerating, setIsGenerating] = useState(false);
-    
+    const [buttonText, setButtonText] = useState('Copy');
     const [prompt, setPrompt] = useState('');
 
     const handleChange = (ev) => {
@@ -27,7 +27,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
         ev.preventDefault();
         setIsGenerating(true);
         try {
-            const response = await fetch(`/api/${messageid}/shortStories`,
+            const response = await fetch(`/api/${messageid}/shortStory`,
                 {
                     method: 'POST',
                     headers: {
@@ -43,12 +43,23 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
             const messageID = storyInfo.messageID;
 
-            Router.push(`/${messageID}`);
+            Router.push(`/shortStories/${messageID}`);
         } catch(err) {
             console.log('messageid Error: ', err);
         }
 
         setIsGenerating(false);
+    };
+
+    const copyStory = async (story) => {
+        
+        navigator.clipboard.writeText(story);
+
+        setButtonText('Copied!');
+
+        setTimeout(() => {
+            setButtonText('Copy');
+        }, 1000);
     };
 
     // Displays the story corresponding to the messageID in a text area
@@ -81,51 +92,49 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                             </Link>
                         </Button>
                     </Header.Item>
-                </Box>
-                    <Header.Item>
-                        <Heading
-                            fontSize={24}
-                            fontWeight="bold"
-                            color="black">
-                            {title}
-                        </Heading>
-                    </Header.Item>
+                </Box>                
             </Header>
             <Box
             display="flex"
             flexDirection="column"
             justifyContent="center"
             alignItems="center">
+                <Heading>
+                        {title}
+                </Heading>
                     {stories.map((story, index) => (
-                        <Link key={index} href={`/shortStories/${messageIDs[index]}`}>
-                            <Box
-                                display="flex"
-                                justifyContent="center"
-                                alignItems="center"
-                                bg="gray.50"
-                                sx={{ paddingBottom: 4 }}>
-                                    <Heading
-                                        fontSize={24}
+                        <Box key={messageIDs[index]}
+                            display="flex"
+                            alignItems="center">
+                            <Link href={`/shortStories/${messageIDs[index]}`}>
+                                <Box
+                                    display="flex"
+                                    justifyContent="center"
+                                    alignItems="center"
+                                    sx={{ paddingBottom: 4 }}>
+                                        <Heading
+                                            fontSize={24}
+                                            fontWeight="bold"
+                                            color="black"
+                                            sx={{ paddingRight: 5 }}>
+                                            {index+1}
+                                        </Heading>
+                                    <Textarea
+                                        disabled
                                         fontWeight="bold"
                                         color="black"
-                                        sx={{ paddingRight: 5 }}>
-                                        {index+1}
-                                    </Heading>
-                                <Textarea
-                                    disabled
-                                    fontWeight="bold"
-                                    color="black"
-                                    cols={90}
-                                    rows={20}
-                                    value={story}/>
-                                <Button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(story);
-                                    }}>
-                                    Copy
-                                </Button>
-                            </Box>
-                        </Link>
+                                        cols={90}
+                                        rows={20}
+                                        value={story}/>                                
+                                </Box>
+                            </Link>
+                            <Button
+                            onClick={() => {
+                                copyStory(story);
+                            }}>
+                                {buttonText}
+                        </Button>
+                    </Box>
                     ))
                     }
                     {/* An area where the user can add onto the existing story underneath all the stories */}

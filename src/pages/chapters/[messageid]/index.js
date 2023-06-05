@@ -14,7 +14,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
     const { messageid } = router.query;
 
     const [isGenerating, setIsGenerating] = useState(false);
-
+    const [buttonText, setButtonText] = useState('Copy');
     const [prompt, setPrompt] = useState('');
 
     const handleChange = (ev) => {
@@ -43,7 +43,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
 
             const messageID = chapterInfo.messageID;
 
-            Router.push(`/${messageID}`);
+            Router.push(`/chapters/${messageID}`);
 
         } catch(err) {
             console.log('messageid Error: ', err);
@@ -89,9 +89,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
             <Box
                 display="flex"
                 flexDirection="column"
-                justifyContent="center"
-                alignItems="center"
-                bg="gray.50">
+                alignItems="center">
                     <Heading
                         fontSize={24}
                         fontWeight="bold"
@@ -102,15 +100,16 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                     
                     {/* Creates a map for all provided chapters. There should be a copy button on the right side of each textarea */}
                     { chapters.map((chapter, index) => (
-                        <div key={messageIDs[index]}>
+                        <Box key={messageIDs[index]}
+                            display="flex"
+                            alignContent="center">
                             <Link href={`/chapters/${messageIDs[index]}`}>
                                 <Box
-                                    justifyContent="center"
-                                    alignItems="center">                                        
+                                    alignItems="center"
+                                    sx={{ paddingBottom: 3 }}>                                        
                                         <Box
                                             display="flex"
                                             flexDirection="row"
-                                            justifyContent="center"
                                             alignItems="center">
                                             <Textarea
                                                 disabled
@@ -118,25 +117,23 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                                                 color="black"
                                                 cols={90}
                                                 rows={20}
-                                                value={chapter}/>
-                                            <Button
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(chapter);
-                                                }}>
-                                                Copy
-                                            </Button>
+                                                value={chapter}/>                                            
                                         </Box>
                                 </Box>
                             </Link>
-                        </div>
+                            <Button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(chapter);
+                                }}>
+                                {buttonText}
+                            </Button>
+                        </Box>
                     ))}
                     {/* Textarea at the bottom to allow the user to add onto the existing story */}
                    <Box
                         display="flex"
                         flexDirection="column"
-                        justifyContent="center"
-                        alignItems="center"
-                        bg="gray.50">
+                        alignItems="center">
                             <Heading
                                 fontSize={24}
                                 fontWeight="bold"

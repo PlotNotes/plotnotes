@@ -50,7 +50,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function postRequest(req: NextApiRequest, res: NextApiResponse) {
-    console.log("post request");
+    
     const { prompt, messageid } = req.body;
 
     const sessionId = req.cookies.token;
@@ -61,7 +61,6 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const userId = await getUserID(sessionId);
-    console.log("user id: " + userId);
     // Since the messageid given is the id of the previous message, the messageid will have the needed seriesid and chapterid
     const seriesIDQuery = await query(
         `SELECT seriesid, chapterid FROM chapters WHERE messageid = $1`,
@@ -71,7 +70,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     const seriesID = (seriesIDQuery.rows[0] as any).seriesid;
     let chapterid = (seriesIDQuery.rows[0] as any).seriesid;
     chapterid = Number(chapterid) + 1;
-    console.log("series id: " + seriesID);
+
     // Gets all previous chapters of the story, ordering with the lowest chapterid first
     const chaptersQuery = await query(
         `SELECT message FROM chapters WHERE seriesid = $1 ORDER BY chapterid ASC`,
@@ -83,7 +82,6 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     for (let i = 0; i < chaptersQuery.rows.length; i++) {
         chapters.push((chaptersQuery.rows[i] as any).message);
     }
-    console.log("chapters: " + chapters);
     // Generates the next chapter
     const story = await continueChapters(prompt, chapters);
     // Inserts the chapter into the db
@@ -94,17 +92,19 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     );
 
     let storyName = (storyNameQuery.rows[0] as any).name;
-
-    console.log("story name: " + storyName);
-    console.log("story: " + story);
-    console.log("user id: " + userId);
-    console.log("chapter id: " + chapterid);
-    console.log("series id: " + seriesID);
     
     await query(
         `INSERT INTO chapters (seriesid, chapterid, prompt, message, userid, name) VALUES ($1, $2, $3, $4, $5, $6)`,
         [seriesID, chapterid, prompt, story, userId, storyName]
     );
 
-    res.status(200).send({ response: "success" });
+    const newMessageIDQuery = await query(
+        `SELECT messageid FROM chapters WHERE seriesid = $1 AND chapterid = $2`,
+        [seriesID, chapterid]
+    );
+    console.log("new message id: " + newMessageIDQuery.rows[0]);
+
+    const newMessageID = (newMessageIDQuery.rows[0] as any).messageid;
+
+    res.status(200).send({ messageid: newMessageID });
 }

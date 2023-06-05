@@ -8,7 +8,19 @@ import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 
 export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chapters }) {
-    
+    const [buttonText, setButtonText] = useState('Copy');
+
+    const copyStory = async (story) => {
+
+        navigator.clipboard.writeText(story);
+
+        setButtonText('Copied!');
+
+        setTimeout(() => {
+            setButtonText('Copy');
+        }, 2000);
+    }
+
     return (
         <div>
             <Head>
@@ -47,7 +59,9 @@ export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chap
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {chapters.map((chapter, index) => (   
-                    <div key={messageIDs[index]}>
+                    <Box key={messageIDs[index]}
+                    display="flex"
+                    alignItems="center">
                         <Link href={`/chapters/${messageIDs[index]}`}>
                             <Box
                                 justifyContent="center"
@@ -78,14 +92,11 @@ export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chap
                         </Link>
                             <Button
                             onClick={() => {
-                                navigator.clipboard.writeText(chapter.replace('"', ''));
-                            }}
-                            aria-label="Copy"
-                            color="black"
-                            border="none">
-                            Copy
+                                copyStory(chapter.replace('"', ''));
+                            }}>
+                                {buttonText}
                         </Button>
-                    </div>
+                    </Box>
                 ))}
 
             </Box>

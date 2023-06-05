@@ -49,7 +49,9 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {stories.map((story, index) => (
-                    <div key={messageid[index]}>
+                    <Box key={messageid[index]}
+                        display="flex"
+                        alignItems="center">
                         <Link href={`/shortStories/${messageid[index]}`}>
                             <Box
                                 justifyContent="center"
@@ -87,7 +89,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                             border="none">
                             Copy
                         </Button>
-                    </div>
+                    </Box>
                 ))}
 
             </Box>
@@ -132,6 +134,16 @@ export async function getServerSideProps(ctx) {
     let prompts = historyResponse.prompts;
     let titles = historyResponse.titles;
     let messageid = historyResponse.messageIDs;
+
+    // Checks the messageid array to see if there are any duplicates, if there are, then remove the duplicates from all arrays
+    for (let i = 0; i < messageid.length; i++) {
+        if (messageid.indexOf(messageid[i]) !== messageid.lastIndexOf(messageid[i])) {
+            stories.splice(i, 1);
+            prompts.splice(i, 1);
+            titles.splice(i, 1);
+            messageid.splice(i, 1);
+        }
+    }
 
     return { props: { sessionID, stories, prompts, titles, messageid } };
 }

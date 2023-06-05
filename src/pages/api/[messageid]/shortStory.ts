@@ -12,6 +12,7 @@ export default async function storyHistory(req: NextApiRequest, res: NextApiResp
 }
 
 async function postRequest(req: NextApiRequest, res: NextApiResponse) {
+    console.log("post request");
     const messageid = req.query.messageid as string;
     const prompt = req.body.prompt as string;
     const sessionId = req.cookies.token;
@@ -22,7 +23,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const userId = await getUserID(sessionId);
-
+    console.log("user id: " + userId);
     // Gets the iterationID of the story associated with the given messageID
     const iterationIDQuery = await query(
         `SELECT (iterationid) FROM shortstories WHERE messageid = $1`,
@@ -41,10 +42,10 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
 
         parentID = (parentIDQuery.rows[0] as any).parentid;
     }
-
+    console.log("parent id: " + parentID);
     // Gets the title of the parent story
     const parentTitle = await getTitle(messageid);
-
+    console.log("parent title: " + parentTitle);
     // Gets every previous story in this iteration and puts it in a string array
     const storiesQuery = await query(
         `SELECT (message) FROM shortstories WHERE messageid = $1 OR parentid = $1`,
@@ -55,6 +56,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
 
     for (let i = 0; i < storiesQuery.rows.length; i++) {
         stories.push((storiesQuery.rows[i] as any).message);
+        console.log("story: " + (storiesQuery.rows[i] as any).message);
     }
 
     const story = await continueStory(prompt, stories);
