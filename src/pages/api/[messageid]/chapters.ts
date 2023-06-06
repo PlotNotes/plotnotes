@@ -40,7 +40,7 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse) {
     const newMessage = await editChapter(prompt, message);
     
     // Sends the new message information back to the user so they can view it before they submit it
-    res.status(200).send({ message: newMessage });
+    res.status(200).send({ oldMessage: message, newMessage: newMessage });
 }
 
 

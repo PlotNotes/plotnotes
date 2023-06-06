@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
-import Link from 'next/link'
-import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios';
-import { HomeButton, HeaderItem } from '../index'
+import { HomeButton, HeaderItem, StoryMap } from '../index'
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
-
+    console.log("messageIDs: ", messageIDs);
     // Gets the messageID from the URL
     const router = useRouter();
     const { messageid } = router.query;
@@ -52,16 +50,96 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
         setIsGenerating(false);
     };
 
-    const copyStory = async (story) => {
-        
-        navigator.clipboard.writeText(story);
+    const ActionButton = ({ buttonText, onClick }) => (
+        <Button variant='primary' onClick={onClick} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+            <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
+                <Box>{buttonText}</Box>
+                    <Box>
+                        <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
+                    </Box>
+            </Box>
+        </Button>
+    );
 
-        setButtonText('Copied!');
+    const handleEdit = async (ev) => {
+        ev.preventDefault();
 
-        setTimeout(() => {
-            setButtonText('Copy');
-        }, 1000);
+        try {
+            const response = await fetch(`/api/${messageid}/chapters`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': `token=${sessionID}`,
+                    },
+                    body: JSON.stringify({ prompt: prompt }),
+                }
+            );
+
+            // Redirects the user to a page where they can compare the two stories and choose to accept or deny the new one
+            const chapterInfo = await response.json();
+
+            const { oldMessage, newMessage} = chapterInfo;
+
+            // Returns a display for the user that shows the old story and the new story side by side, allowing them to
+            // choose which one they want to keep
+            return (
+                    <div>
+                        <Head>
+                            <title>PlotNotes</title>
+                        </Head>
+                        <Header>
+                            <HomeButton />
+                            <HeaderItem href="/chapters" text="Chapters" />
+                            <HeaderItem href="/prompt" text="Prompt" />
+                        </Header>
+                        <StoryBox title="Old Story" message={oldMessage} />
+                        <StoryBox title="New Story" message={newMessage} />
+                        <Box
+                            display="flex"
+                            flexDirection="column"
+                            justifyContent="center"
+                            alignItems="center"
+                            bg="gray.50">
+                                <ActionButton buttonText="Accept" onClick={handleAccept} />
+                                <ActionButton buttonText="Deny" onClick={handleDeny} />
+                        </Box>
+                    </div>
+                );
+
+        } catch(err) {
+            console.log('messageid Error: ', err);
+        }
     };
+
+    const StoryBox = ({ title, message }) => (
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          bg="gray.50">
+          <Heading
+            fontSize={24}
+            fontWeight="bold"
+            color="black"
+            sx={{ paddingTop: 4 }}>
+            {title}
+          </Heading>
+          <Textarea
+            fontWeight="bold"
+            color="black"
+            cols={90}
+            rows={10}
+            value={message}/>
+        </Box>
+      );
+      
+    
+    const handleAccept = async (ev) => {
+    }
+
+    const handleDeny = async (ev) => {
+    }
 
     // Displays the story corresponding to the messageID in a text area
     // There should be a copy button on the right side of the textarea
@@ -84,38 +162,8 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                         {title}
                 </Heading>
                     {stories.map((story, index) => (
-                        <Box key={messageIDs[index]}
-                            display="flex"
-                            alignItems="center">
-                            <Link href={`/shortStories/${messageIDs[index]}`}>
-                                <Box
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    sx={{ paddingBottom: 4 }}>
-                                        <Heading
-                                            fontSize={24}
-                                            fontWeight="bold"
-                                            color="black"
-                                            sx={{ paddingRight: 5 }}>
-                                            {index+1}
-                                        </Heading>
-                                    <Textarea
-                                        disabled
-                                        fontWeight="bold"
-                                        color="black"
-                                        cols={90}
-                                        rows={20}
-                                        value={story}/>                                
-                                </Box>
-                            </Link>
-                            <Button
-                            onClick={() => {
-                                copyStory(story);
-                            }}>
-                                {buttonText}
-                        </Button>
-                    </Box>
+                        console.log("messageIDs[index]: ", messageIDs[index]),
+                        <StoryMap key={messageIDs[index]} story={story} index={index} messageIDs={messageIDs} storyNames={title} />
                     ))
                     }
                     {/* An area where the user can add onto the existing story underneath all the stories */}
@@ -138,14 +186,12 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                                 cols={90}
                                 rows={10}
                                 onChange={handleChange}/>
-                            <Button variant='primary' onClick={handleSubmit} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
-                                <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
-                                    <Box>Submit</Box>
-                                        <Box>
-                                            <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
-                                        </Box>
-                                </Box>
-                            </Button>
+                            <Box
+                                display="flex"
+                                flexDirection="row">
+                                <ActionButton buttonText="Submit" onClick={handleSubmit} />
+                                <ActionButton buttonText="Edit" onClick={handleEdit} />
+                            </Box>
                     </Box>
             </Box>
         </div>

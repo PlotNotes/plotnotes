@@ -9,60 +9,6 @@ import axios from 'axios';
 
 
 export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chapters }) {
-    const [buttonText, setButtonText] = useState('Copy');
-
-    const ChapterMap = ({ chapter, index }) => (
-        <Box 
-            key={messageIDs[index]}
-            display="flex"
-            alignItems="center">
-                <Link href={`/chapters/${messageIDs[index]}`}>
-                    <Box
-                        justifyContent="center"
-                        alignItems="center">
-                            <Heading
-                                fontSize={24}
-                                fontWeight="bold"
-                                color="black">
-                                {storyNames[index]}
-                            </Heading>
-                            
-                            <Box
-                                display="flex"
-                                flexDirection="row"
-                                justifyContent="center"
-                                alignItems="center">
-                                <Textarea
-                                    disabled
-                                    id={`story-${index}`}
-                                    name={`story-${index}`}
-                                    value={chapter.replace('"', '')}
-                                    aria-label="Story"
-                                    cols={90} 
-                                    rows={20}
-                                />                                    
-                            </Box>
-                    </Box>
-                </Link>
-                    <Button
-                    onClick={() => {
-                        copyStory(chapter.replace('"', ''));
-                    }}>
-                        {buttonText}
-                </Button>
-        </Box>
-    )
-    
-    const copyStory = async (story) => {
-    
-        navigator.clipboard.writeText(story);
-    
-        setButtonText('Copied!');
-    
-        setTimeout(() => {
-            setButtonText('Copy');
-        }, 2000);
-    }
 
     return (
         <div>
@@ -84,11 +30,68 @@ export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chap
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {chapters.map((chapter, index) => (   
-                    <ChapterMap chapter={chapter} index={index} />
+                    <ChapterMap key={messageIDs[index]} chapter={chapter} index={index} messageIDs={messageIDs} storyNames={storyNames} />
                 ))}
 
             </Box>
         </div>
+    );
+}
+
+export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
+
+    const [buttonText, setButtonText] = useState('Copy');
+
+    const copyStory = async (story) => {
+
+        navigator.clipboard.writeText(story);
+    
+        setButtonText('Copied!');
+    
+        setTimeout(() => {
+            setButtonText('Copy');
+        }, 2000);
+    }
+
+    return (
+    <Box 
+        display="flex"
+        alignItems="center">
+            <Link href={`/chapters/${messageIDs[index]}`}>
+                <Box
+                    justifyContent="center"
+                    alignItems="center">
+                        <Heading
+                            fontSize={24}
+                            fontWeight="bold"
+                            color="black">
+                            {storyNames[index]}
+                        </Heading>
+                        
+                        <Box
+                            display="flex"
+                            flexDirection="row"
+                            justifyContent="center"
+                            alignItems="center">
+                            <Textarea
+                                disabled
+                                id={`story-${index}`}
+                                name={`story-${index}`}
+                                value={chapter.replace('"', '')}
+                                aria-label="Story"
+                                cols={90} 
+                                rows={20}
+                            />                                    
+                        </Box>
+                </Box>
+            </Link>
+                <Button
+                onClick={() => {
+                    copyStory(chapter.replace('"', ''));
+                }}>
+                    {buttonText}
+            </Button>
+    </Box>
     );
 }
 

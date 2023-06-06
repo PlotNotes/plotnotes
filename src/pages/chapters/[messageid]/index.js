@@ -89,7 +89,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
       );      
 
       const ChapterBox = ({ chapter, messageID, buttonText }) => (
-        <Box key={messageID}
+        <Box
              display="flex"
              alignContent="center">
           <Link href={`/chapters/${messageID}`}>
@@ -131,7 +131,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                     
                     {/* Creates a map for all provided chapters. There should be a copy button on the right side of each textarea */}
                     { chapters.map((chapter, index) => (
-                        <ChapterBox chapter={chapter} messageID={messageIDs[index]} buttonText={buttonText} />
+                        <ChapterBox key={messageIDs[index]} chapter={chapter} messageID={messageIDs[index]} buttonText={buttonText} />
                     ))}
                     {/* Textarea at the bottom to allow the user to add onto the existing story */}
                    <Box

@@ -7,7 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 
-export default function History({sessionID, stories, prompts, titles, messageid}) {    
+export default function History({sessionID, stories, prompts, storyNames, messageIDs}) {    
     // Upon loading the page, the user is presented with a list of their previous stories
     // Each story is displayed as a button that, when clicked, will display the story in a text area below the list
 
@@ -31,7 +31,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {stories.map((story, index) => (
-                    <StoryMap story={story} index={index} messageid={messageid} titles={titles} />
+                    <StoryMap key={messageIDs[index]} story={story} index={index} messageid={messageIDs} storyNames={storyNames} />
                 ))}
 
             </Box>
@@ -39,11 +39,7 @@ export default function History({sessionID, stories, prompts, titles, messageid}
     );
 }
 
-const StoryMap = ({ story, index, messageid, titles }) => {
-    console.log('story: ', story);
-    console.log('index: ', index);
-    console.log('messageid: ', messageid);
-    console.log('titles: ', titles);
+export const StoryMap = ({ story, index, messageIDs, storyNames }) => {
 
     const [buttonText, setButtonText] = useState('Copy');
 
@@ -57,13 +53,46 @@ const StoryMap = ({ story, index, messageid, titles }) => {
             setButtonText('Copy');
         }, 1000);
     }
+    console.log("storyNames: ", storyNames);
+    console.log(typeof storyNames)
+    if (typeof storyNames === 'string') {
+        return (
+            <Box
+                display="flex"
+                alignItems="center">
+                    <Link href={`/shortStories/${messageIDs[index]}`}>
+                        <Box
+                            display="flex"
+                            flexDirection="row"
+                            justifyContent="center"
+                            alignItems="center"
+                            sx={{ paddingBottom: 3 }}>
+                            <Textarea
+                                disabled
+                                id={`story-${index}`}
+                                name={`story-${index}`}
+                                value={story}
+                                aria-label="Story"
+                                cols={90}
+                                rows={20}
+                            />
+                        </Box>
+                    </Link>
+                        <Button
+                        onClick={() => {
+                            copyStory(story);
+                        }}>
+                            {buttonText}
+                    </Button>
+            </Box>
+        );
+    }
 
     return (
     <Box
-        key={messageid[index]}
         display="flex"
         alignItems="center">
-            <Link href={`/shortStories/${messageid[index]}`}>
+            <Link href={`/shortStories/${messageIDs[index]}`}>
                 <Box
                     justifyContent="center"
                     alignItems="center">
@@ -71,7 +100,7 @@ const StoryMap = ({ story, index, messageid, titles }) => {
                             fontSize={24}
                             fontWeight="bold"
                             color="black">
-                            {titles[index]}
+                            {storyNames[index]}
                         </Heading>
                 </Box>
                 <Box
@@ -153,18 +182,18 @@ export async function getServerSideProps(ctx) {
     
     let stories = historyResponse.stories;
     let prompts = historyResponse.prompts;
-    let titles = historyResponse.titles;
-    let messageid = historyResponse.messageIDs;
+    let storyNames = historyResponse.titles;
+    let messageIDs = historyResponse.messageIDs;
 
     // Checks the messageid array to see if there are any duplicates, if there are, then remove the duplicates from all arrays
-    for (let i = 0; i < messageid.length; i++) {
-        if (messageid.indexOf(messageid[i]) !== messageid.lastIndexOf(messageid[i])) {
+    for (let i = 0; i < messageIDs.length; i++) {
+        if (messageIDs.indexOf(messageIDs[i]) !== messageIDs.lastIndexOf(messageIDs[i])) {
             stories.splice(i, 1);
             prompts.splice(i, 1);
-            titles.splice(i, 1);
-            messageid.splice(i, 1);
+            storyNames.splice(i, 1);
+            messageIDs.splice(i, 1);
         }
     }
 
-    return { props: { sessionID, stories, prompts, titles, messageid } };
+    return { props: { sessionID, stories, prompts, storyNames, messageIDs } };
 }
