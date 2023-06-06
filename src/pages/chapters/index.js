@@ -7,28 +7,18 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 
-export default function ChapterDisplay({ sessionID, chapterNames, seriesIDs, chapters }) {
-    
+
+export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chapters }) {
+
     return (
         <div>
             <Head>
                 <title>PlotNotes</title>
             </Head>
             <Header>
-                <Header.Item>
-                    <Link href="/">
-                        <Tooltip aria-label="Home" direction="e" noDelay >
-                            <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
-                        </Tooltip>
-                    </Link>
-                </Header.Item>
-                <Header.Item>
-                    <Button variant='primary'>
-                        <Link href="/shortStories">
-                            Short Stories
-                        </Link>
-                    </Button>
-                </Header.Item>
+                <HomeButton />
+                <HeaderItem href="/shortStories" text="Short Stories" />
+                <HeaderItem href="/prompt" text="Prompt" />
             </Header>
             <Box
             display="flex"
@@ -39,52 +29,89 @@ export default function ChapterDisplay({ sessionID, chapterNames, seriesIDs, cha
                 {/* Creates a list for each item in the history array by calling the history method above */}
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
-                {chapters.map((chapter, index) => (                    
-                    <div key={seriesIDs[index]}>
-                        <Link href={`/chapters/${seriesIDs[index]}`}>
-                            <Box
-                                justifyContent="center"
-                                alignItems="center">
-                                    <Heading
-                                        fontSize={24}
-                                        fontWeight="bold"
-                                        color="black">
-                                        {chapterNames[index]}
-                                    </Heading>
-                                    
-                                    <Box
-                                        display="flex"
-                                        flexDirection="row"
-                                        justifyContent="center"
-                                        alignItems="center">
-                                        <Textarea
-                                            disabled
-                                            id={`story-${index}`}
-                                            name={`story-${index}`}
-                                            value={chapter.replace('"', '')}
-                                            aria-label="Story"
-                                            cols={90} 
-                                            rows={20}
-                                        />                                    
-                                    </Box>
-                            </Box>
-                        </Link>
-                            <Button
-                            onClick={() => {
-                                navigator.clipboard.writeText(chapter.replace('"', ''));
-                            }}
-                            aria-label="Copy"
-                            color="black"
-                            border="none">
-                            Copy
-                        </Button>
-                    </div>
+                {chapters.map((chapter, index) => (   
+                    <ChapterMap key={messageIDs[index]} chapter={chapter} index={index} messageIDs={messageIDs} storyNames={storyNames} />
                 ))}
 
             </Box>
         </div>
     );
 }
+
+export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
+
+    const [buttonText, setButtonText] = useState('Copy');
+
+    const copyStory = async (story) => {
+
+        navigator.clipboard.writeText(story);
+    
+        setButtonText('Copied!');
+    
+        setTimeout(() => {
+            setButtonText('Copy');
+        }, 2000);
+    }
+
+    return (
+    <Box 
+        display="flex"
+        alignItems="center">
+            <Link href={`/chapters/${messageIDs[index]}`}>
+                <Box
+                    justifyContent="center"
+                    alignItems="center">
+                        <Heading
+                            fontSize={24}
+                            fontWeight="bold"
+                            color="black">
+                            {storyNames[index]}
+                        </Heading>
+                        
+                        <Box
+                            display="flex"
+                            flexDirection="row"
+                            justifyContent="center"
+                            alignItems="center">
+                            <Textarea
+                                disabled
+                                id={`story-${index}`}
+                                name={`story-${index}`}
+                                value={chapter.replace('"', '')}
+                                aria-label="Story"
+                                cols={90} 
+                                rows={20}
+                            />                                    
+                        </Box>
+                </Box>
+            </Link>
+                <Button
+                onClick={() => {
+                    copyStory(chapter.replace('"', ''));
+                }}>
+                    {buttonText}
+            </Button>
+    </Box>
+    );
+}
+
+export const HeaderItem = ({ href, text }) => (
+    <Header.Item>
+        <Button variant='primary'>
+        <Link href={href}>{text}</Link>
+      </Button>
+    </Header.Item>
+)
+
+export const HomeButton = () => (
+    <Header.Item>
+        <Link href="/">
+            <Tooltip aria-label="Home" direction="s" noDelay >
+                <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
+            </Tooltip>
+        </Link>
+    </Header.Item>
+)
 
 export async function getServerSideProps(ctx) {
 
@@ -133,11 +160,15 @@ export async function getServerSideProps(ctx) {
             },
             props:{ },
         };
+    } else if (chapterInfo.response === 'no chapters') {
+        return {
+            props: { sessionID, storyNames: [], messageIDs: [], chapters: [] },
+        };
     }
-
-    const chapterNames = chapterInfo.storyNames;
-    const seriesIDs = chapterInfo.seriesIDs;
+    
+    const storyNames = chapterInfo.storyNames;
+    const messageIDs = chapterInfo.messageIDs;
     const chapters = chapterInfo.chapters;
 
-    return { props: { sessionID, chapterNames, seriesIDs, chapters } };
+    return { props: { sessionID, storyNames, messageIDs, chapters } };
 }

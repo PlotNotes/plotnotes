@@ -1,18 +1,30 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
-import Cookies from 'cookies';
 import { getUserID } from '../shortStoryCmds';
 import { continueStory } from '../prompt';
 
 export default async function storyHistory(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method == "GET") {
-        await getRequest(req, res);
-    } else if (req.method == "POST") {
-        await postRequest(req, res);
+
+    try {
+        const sessionid = req.cookies.token as string;
+        const userid = await getUserID(sessionid);
+
+        if (req.method == "GET") {
+            await getRequest(req, res);
+        } else if (req.method == "POST") {
+            await postRequest(req, res);
+        }
+    } catch (e) {
+        // If the userid cannot be found from the sessionid, route the user back to the login page
+        if (e instanceof TypeError && e.message == "Cannot read properties of undefined (reading 'userid')") {
+            res.status(401).send({ response: "no session id" });
+            return;
+        }
     }
 }
 
 async function postRequest(req: NextApiRequest, res: NextApiResponse) {
+    console.log("post request");
     const messageid = req.query.messageid as string;
     const prompt = req.body.prompt as string;
     const sessionId = req.cookies.token;
@@ -23,7 +35,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const userId = await getUserID(sessionId);
-
+    console.log("user id: " + userId);
     // Gets the iterationID of the story associated with the given messageID
     const iterationIDQuery = await query(
         `SELECT (iterationid) FROM shortstories WHERE messageid = $1`,
@@ -42,10 +54,10 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
 
         parentID = (parentIDQuery.rows[0] as any).parentid;
     }
-
+    console.log("parent id: " + parentID);
     // Gets the title of the parent story
     const parentTitle = await getTitle(messageid);
-
+    console.log("parent title: " + parentTitle);
     // Gets every previous story in this iteration and puts it in a string array
     const storiesQuery = await query(
         `SELECT (message) FROM shortstories WHERE messageid = $1 OR parentid = $1`,
@@ -56,6 +68,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
 
     for (let i = 0; i < storiesQuery.rows.length; i++) {
         stories.push((storiesQuery.rows[i] as any).message);
+        console.log("story: " + (storiesQuery.rows[i] as any).message);
     }
 
     const story = await continueStory(prompt, stories);
@@ -124,8 +137,13 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse) {
     );
     const childStories = childStoriesQuery.rows;
     
-    let childStoriesArray = childStories.map((childStory: any) => childStory.message);
-    let messageIDArray = childStories.map((childStory: any) => childStory.messageid);
+    let childStoriesArray: string[] = [];
+    let messageIDArray: string[] = [];
+    messageIDArray.push(parentStoryID);
+    for (let i = 0; i < childStories.length; i++) {
+        childStoriesArray.push((childStories[i] as any).message);
+        messageIDArray.push((childStories[i] as any).messageid);
+    }
 
     const parentTitle = await getTitle(parentStoryID);
     let stories = [];

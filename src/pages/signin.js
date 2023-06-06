@@ -116,7 +116,7 @@ export default function SignIn() {
         <Header>
             <Header.Item>
                 <Link href="/">
-                    <Tooltip aria-label="Home" direction="e" noDelay >
+                    <Tooltip aria-label="Home" direction="s" noDelay >
                         <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
                     </Tooltip>
                 </Link>

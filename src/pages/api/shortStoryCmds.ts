@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
-import Cookies from 'cookies';
 
 export default async function insertStory(req: NextApiRequest, res: NextApiResponse) {
     if (req.method == "POST")

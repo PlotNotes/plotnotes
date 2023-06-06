@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
+import Link from 'next/link'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios';
-import { HomeButton, HeaderItem, StoryMap } from '../index'
+import { HomeButton, HeaderItem } from '../index'
 
-export default function Page({ sessionID, stories, title, messageIDs }) {
-
-    // Gets the messageID from the URL
+export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
+    
     const router = useRouter();
     const { messageid } = router.query;
-
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [buttonText, setButtonText] = useState('Copy');
@@ -25,8 +24,10 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
     const handleSubmit = async (ev) => {
         ev.preventDefault();
         setIsGenerating(true);
+
         try {
-            const response = await fetch(`/api/${messageid}/shortStory`,
+
+            const response = await fetch(`/api/${messageid}/chapters`,
                 {
                     method: 'POST',
                     headers: {
@@ -38,34 +39,22 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             );
 
             if (response.status === 401) {
-                Router.push(`/signin?from=/shortStories/${messageid}`);
-                return;
+                Router.push(`/signin?from=/chapters/${messageid}`);  
+                return;           
             }
 
             // Redirect the user to the page of the new story by using the new messageID given from the server
-            const storyInfo = await response.json();
+            const chapterInfo = await response.json();
 
-            const messageID = storyInfo.messageID;
+            const messageID = chapterInfo.messageID;
 
-            Router.push(`/shortStories/${messageID}`);
+            Router.push(`/chapters/${messageID}`);
+
         } catch(err) {
             console.log('messageid Error: ', err);
         }
-
-        setIsGenerating(false);
     };
-
-    const ActionButton = ({ buttonText, onClick }) => (
-        <Button variant='primary' onClick={onClick} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
-            <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
-                <Box>{buttonText}</Box>
-                    <Box>
-                        <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
-                    </Box>
-            </Box>
-        </Button>
-    );
-
+    
     const handleEdit = async (ev) => {
         ev.preventDefault();
 
@@ -80,9 +69,9 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                     body: JSON.stringify({ prompt: prompt }),
                 }
             );
-            console.log("response: ", response);
+
             if (response.status === 401) {
-                Router.push(`/signin?from=/shortStories/${messageid}`);
+                Router.push(`/signin?from=/chapters/${messageid}`);
                 return;
             }
 
@@ -90,8 +79,8 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             const chapterInfo = await response.json();
 
             const { oldMessage, newMessage} = chapterInfo;
-            console.log("oldMessage: ", oldMessage);
-            console.log("newMessage: ", newMessage);
+            console.log('oldMessage: ', oldMessage);
+            console.log('newMessage: ', newMessage);
             // Returns a display for the user that shows the old story and the new story side by side, allowing them to
             // choose which one they want to keep
             return (
@@ -104,8 +93,8 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                             <HeaderItem href="/chapters" text="Chapters" />
                             <HeaderItem href="/prompt" text="Prompt" />
                         </Header>
-                        <StoryBox title="Old Story" message={oldMessage} />
-                        <StoryBox title="New Story" message={newMessage} />
+                        <ChapterBox chapter={oldMessage} messageID={messageid} buttonText="Copy Old Story" />
+                        <ChapterBox chapter={newMessage} messageID={messageid} buttonText="Copy New Story" />
                         <Box
                             display="flex"
                             flexDirection="column"
@@ -123,39 +112,43 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
         }
     };
 
-    const StoryBox = ({ title, message }) => (
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          bg="gray.50">
-          <Heading
-            fontSize={24}
-            fontWeight="bold"
-            color="black"
-            sx={{ paddingTop: 4 }}>
-            {title}
-          </Heading>
-          <Textarea
-            fontWeight="bold"
-            color="black"
-            cols={90}
-            rows={10}
-            value={message}/>
-        </Box>
-      );
-      
-    
     const handleAccept = async (ev) => {
-        console.log("Accepted");
+        console.log('Accepting new story');
     }
 
     const handleDeny = async (ev) => {
-        console.log("Denied");
+        console.log('Denying new story');
     }
+      
+      const ActionButton = ({ buttonText, onClick, isGenerating }) => (
+        <Button variant='primary' onClick={onClick} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+          <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
+            <Box>{buttonText}</Box>
+            <Box>
+              <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
+            </Box>
+          </Box>
+        </Button>
+      );      
 
-    // Displays the story corresponding to the messageID in a text area
-    // There should be a copy button on the right side of the textarea
+      const ChapterBox = ({ chapter, messageID, buttonText }) => (
+        <Box
+             display="flex"
+             alignContent="center">
+          <Link href={`/chapters/${messageID}`}>
+            <Box alignItems="center" sx={{ paddingBottom: 3 }}>
+              <Box display="flex" flexDirection="row" alignItems="center">
+                <Textarea disabled fontWeight="bold" color="black" cols={90} rows={20} value={chapter}/>
+              </Box>
+            </Box>
+          </Link>
+          <Button onClick={() => { copyStory(chapter); }}>
+            {buttonText}
+          </Button>
+        </Box>
+      );
+      
+
     return (
         <div>
             <Head>
@@ -163,28 +156,31 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             </Head>
             <Header>
                 <HomeButton />
+                <HeaderItem href="/shortStories" text="Short Stories" />
+                <HeaderItem href="/prompt" text="Prompt" />
                 <HeaderItem href="/chapters" text="Chapters" />
-                <HeaderItem href="/prompt" text="Prompt" />          
             </Header>
             <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="center">
-                <Heading>
-                        {title}
-                </Heading>
-                    {stories.map((story, index) => (
-                        <StoryMap key={messageIDs[index]} story={story} index={index} messageIDs={messageIDs} storyNames={title} />
-                    ))
-                    }
-                    {/* An area where the user can add onto the existing story underneath all the stories */}
-                    <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center">
+                    <Heading
+                        fontSize={24}
+                        fontWeight="bold"
+                        color="black"
+                        sx={{ paddingTop: 4 }}>
+                        {storyNames[0]}
+                    </Heading>
+                    
+                    {/* Creates a map for all provided chapters. There should be a copy button on the right side of each textarea */}
+                    { chapters.map((chapter, index) => (
+                        <ChapterBox key={messageIDs[index]} chapter={chapter} messageID={messageIDs[index]} buttonText={buttonText} />
+                    ))}
+                    {/* Textarea at the bottom to allow the user to add onto the existing story */}
+                   <Box
                         display="flex"
                         flexDirection="column"
-                        justifyContent="center"
-                        alignItems="center"
-                        bg="gray.50">
+                        alignItems="center">
                             <Heading
                                 fontSize={24}
                                 fontWeight="bold"
@@ -200,14 +196,16 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                                 onChange={handleChange}/>
                             <Box
                                 display="flex"
-                                flexDirection="row">
-                                <ActionButton buttonText="Submit" onClick={handleSubmit} />
-                                <ActionButton buttonText="Edit" onClick={handleEdit} />
+                                flexDirection="row"
+                                alignItems="center"
+                                sx={{ paddingBottom: 6 }}>
+                                <ActionButton buttonText="Submit" onClick={handleSubmit} isGenerating={isGenerating} />
+                                <ActionButton buttonText="Edit" onClick={handleEdit} isGenerating={isGenerating} />
                             </Box>
                     </Box>
             </Box>
         </div>
-    )
+    );
 }
 
 export async function getServerSideProps(ctx) {
@@ -219,7 +217,7 @@ export async function getServerSideProps(ctx) {
       return {
         redirect: {
           permanent: false,
-          destination: `/signin?from=/shortStories/${messageID}`,
+          destination: `/signin?from=/chapters/${messageID}`,
         },
         props:{ },
       };
@@ -234,7 +232,7 @@ export async function getServerSideProps(ctx) {
     baseURL: baseURL
     });
 
-    const response = await axiosInstance.get(`/api/${messageID}/shortStory`,
+    const response = await axiosInstance.get(`/api/${messageID}/chapters`,
             {
                 method: 'GET',
                 headers: {
@@ -243,24 +241,28 @@ export async function getServerSideProps(ctx) {
                 },
             }
         );
-        
-        const storyInfo = await response.data;
-    
-        // If the json has an error saying the messageID does not belong to the user, redirect to the home page
-        if (storyInfo.error) {
-            console.log("storyInfo error:", storyInfo.error);
-            return {
-                redirect: {
-                  permanent: false,
-                  destination: `/`,
-                },
-                props:{ },
-              };
-        }
-        // Stores storyInfo.response as an array of strings
-        const title = storyInfo.parentTitle; 
-        const stories = storyInfo.stories;
-        const messageIDs = storyInfo.messageIDs;
 
-        return { props: { sessionID, stories, title, messageIDs } };
+    const chapterInfo = await response.data;
+
+    // If the json has an error saying the messageID does not belong to the user, redirect to the home page
+    if (chapterInfo.error) {
+        console.log("chapterInfo error:", chapterInfo.error);
+        return {
+            redirect: {
+                permanent: false,
+                destination: `/`,
+            },
+            props:{ },
+        };
+    } else if (chapterInfo.response === 'no chapters') {
+        return {
+            props: { sessionID, storyNames: [], messageIDs: [], chapters: [] },
+        };
+    }
+
+    const chapters = chapterInfo.chapters;
+    const storyNames = chapterInfo.storyNames;
+    const messageIDs = chapterInfo.messageIDs;
+
+    return { props: { sessionID, storyNames, messageIDs, chapters } };
 }
