@@ -8,7 +8,7 @@ import axios from 'axios';
 import { HomeButton, HeaderItem, StoryMap } from '../index'
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
-    console.log("messageIDs: ", messageIDs);
+
     // Gets the messageID from the URL
     const router = useRouter();
     const { messageid } = router.query;
@@ -36,6 +36,11 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                     body: JSON.stringify({ messageid: messageid, prompt: prompt }),
                 }
             );
+
+            if (response.status === 401) {
+                Router.push(`/signin?from=/shortStories/${messageid}`);
+                return;
+            }
 
             // Redirect the user to the page of the new story by using the new messageID given from the server
             const storyInfo = await response.json();
@@ -75,6 +80,11 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                     body: JSON.stringify({ prompt: prompt }),
                 }
             );
+
+            if (response.status === 401) {
+                Router.push(`/signin?from=/shortStories/${messageid}`);
+                return;
+            }
 
             // Redirects the user to a page where they can compare the two stories and choose to accept or deny the new one
             const chapterInfo = await response.json();
@@ -162,7 +172,6 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                         {title}
                 </Heading>
                     {stories.map((story, index) => (
-                        console.log("messageIDs[index]: ", messageIDs[index]),
                         <StoryMap key={messageIDs[index]} story={story} index={index} messageIDs={messageIDs} storyNames={title} />
                     ))
                     }
@@ -207,7 +216,7 @@ export async function getServerSideProps(ctx) {
       return {
         redirect: {
           permanent: false,
-          destination: `/signin?from=/${messageID}`,
+          destination: `/signin?from=/shortStories/${messageID}`,
         },
         props:{ },
       };

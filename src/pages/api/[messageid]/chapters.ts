@@ -6,13 +6,23 @@ import { editChapter } from '../prompt';
 
 
 export default async function chapterHistory(req: NextApiRequest, res: NextApiResponse) {
+    try {
+        const sessionid = req.cookies.token as string;
+        const userid = await getUserID(sessionid);
 
-    if (req.method == "GET") {
-        await getRequest(req, res);
-    } else if (req.method == "POST") {
-        await postRequest(req, res);
-    } else if (req.method == "PUT") {
-        await putRequest(req, res);
+        if (req.method == "GET") {
+            await getRequest(req, res);
+        } else if (req.method == "POST") {
+            await postRequest(req, res);
+        } else if (req.method == "PUT") {
+            await putRequest(req, res);
+        }
+    } catch (e) {
+        // If the userid cannot be found from the sessionid, route the user back to the login page
+        if (e instanceof TypeError && e.message == "Cannot read properties of undefined (reading 'userid')") {
+            res.status(401).send({ response: "no session id" });
+            return;
+        }
     }
 }
 
@@ -31,9 +41,14 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // Given the prompt, get the message associated with the messageid and edit the story according to the prompt
     const messageQuery = await query(
-        `SELECT message FROM chapters WHERE messageid = $1`,
-        [messageid]
+        `SELECT message FROM chapters WHERE messageid = $1 AND userid = $2`,
+        [messageid, userId]
     );
+
+    if (messageQuery.rows.length == 0) {
+        res.status(200).send({ response: "no chapters" });
+        return;
+    }
 
     const message = (messageQuery.rows[0] as any).message;
 

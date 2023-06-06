@@ -38,6 +38,11 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                 }
             );
 
+            if (response.status === 401) {
+                Router.push(`/signin?from=/chapters/${messageid}`);  
+                return;           
+            }
+
             // Redirect the user to the page of the new story by using the new messageID given from the server
             const chapterInfo = await response.json();
 
@@ -64,6 +69,11 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                     body: JSON.stringify({ prompt: prompt }),
                 }
             );
+
+            if (response.status === 401) {
+                Router.push(`/signin?from=/chapters/${messageid}`);
+                return;
+            }
 
             // Redirects the user to a page where they can compare the two stories and choose to accept or deny the new one
             const chapterInfo = await response.json();
@@ -174,7 +184,7 @@ export async function getServerSideProps(ctx) {
       return {
         redirect: {
           permanent: false,
-          destination: `/signin?from=/${messageID}`,
+          destination: `/signin?from=/chapters/${messageID}`,
         },
         props:{ },
       };

@@ -1,6 +1,6 @@
 import { ChatCompletionRequestMessageRoleEnum } from "openai";
 import { getOpenAIClient, constructPrompt } from "./openai";
-
+import { getUserID } from "./shortStoryCmds";
 
 async function getStory(req: any) {
   const openai = getOpenAIClient();
@@ -15,24 +15,35 @@ async function getStory(req: any) {
 
 
 export default async function handler(req: any, res: any) {
-  const createShortStory = req.body.shortStory;
 
-  if (createShortStory) {
-    const story = await getStory(req);
-    const storyName = await createStoryName(story);
-    res.status(200).send({story: story, storyName: storyName});
-  } else {
+  try {
+    const sessionid = req.cookies.token;
+    const userid = await getUserID(sessionid);
 
-    const prompt = req.body.prompt;
-    const storyName = await createStoryName(prompt);
+    const createShortStory = req.body.shortStory;
 
-    let chapters: string[] = [];
+    if (createShortStory) {
+      const story = await getStory(req);
+      const storyName = await createStoryName(story);
+      res.status(200).send({story: story, storyName: storyName});
+    } else {
 
-    // Writes 1 chapter as a test, TODO: write more chapters
-    let chapter = await writeChapter(prompt, chapters);
-    chapters.push(chapter);
+      const prompt = req.body.prompt;
+      const storyName = await createStoryName(prompt);
 
-    res.status(200).send({chapters: chapters, storyName: storyName});
+      let chapters: string[] = [];
+
+      // Writes 1 chapter as a test, TODO: write more chapters
+      let chapter = await writeChapter(prompt, chapters);
+      chapters.push(chapter);
+
+      res.status(200).send({chapters: chapters, storyName: storyName});
+    }
+  } catch (err) {
+    if (err instanceof TypeError && err.message == "Cannot read properties of undefined (reading 'userid')") {
+      res.status(401).send({ response: "no session id" });
+      return;
+    }
   }
 }
 

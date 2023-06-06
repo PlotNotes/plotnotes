@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
+import Router, { useRouter } from 'next/router'
 
 
 export default function Prompt({ sessionID }) {
@@ -30,6 +31,12 @@ export default function Prompt({ sessionID }) {
                 body: JSON.stringify({ prompt:prompt, shortStory: true }),
             }
         );
+        
+        if (response.status === 401) {
+            Router.push(`/signin?from=/prompt`);
+            return;
+        }
+
         const storyInfo = await response.json();        
         let newStory = storyInfo.story.split('response: ')[0];
         let storyName = storyInfo.storyName.split('response: ')[0];
@@ -68,6 +75,12 @@ export default function Prompt({ sessionID }) {
                                             shortStory: false }),
                 }
             );
+
+            if (response.status === 401) {
+                Router.push(`/signin?from=/prompt`);
+                return;
+            }
+
             const storyInfo = await response.json();
             
             // The response is split into an array of chapters, and a story name

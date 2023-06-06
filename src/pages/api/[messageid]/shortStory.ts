@@ -4,10 +4,22 @@ import { getUserID } from '../shortStoryCmds';
 import { continueStory } from '../prompt';
 
 export default async function storyHistory(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method == "GET") {
-        await getRequest(req, res);
-    } else if (req.method == "POST") {
-        await postRequest(req, res);
+
+    try {
+        const sessionid = req.cookies.token as string;
+        const userid = await getUserID(sessionid);
+
+        if (req.method == "GET") {
+            await getRequest(req, res);
+        } else if (req.method == "POST") {
+            await postRequest(req, res);
+        }
+    } catch (e) {
+        // If the userid cannot be found from the sessionid, route the user back to the login page
+        if (e instanceof TypeError && e.message == "Cannot read properties of undefined (reading 'userid')") {
+            res.status(401).send({ response: "no session id" });
+            return;
+        }
     }
 }
 
