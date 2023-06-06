@@ -84,10 +84,10 @@ export default function Prompt({ sessionID }) {
             const storyInfo = await response.json();
             
             // The response is split into an array of chapters, and a story name
-            let chapters = storyInfo.chapters;
+            let chapter = storyInfo.chapter;
             let storyName = storyInfo.storyName;
 
-            setStory(chapters[0]);
+            setStory(chapter);
 
             const insertChapter = await fetch('/api/chapterCmds',
                 {
@@ -96,13 +96,13 @@ export default function Prompt({ sessionID }) {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({  sessionid: sessionID,
-                                            story: chapters.join('\n'),
+                                            story: chapter,
                                             storyName: storyName,
                                             prompt: prompt,
                     }),
                 }
             );
-            const chapterInfo = await insertChapter.json();
+            // const chapterInfo = await insertChapter.json();
             setIsGenerating(false);
         } catch(err) {
             console.log('Error: ', err);

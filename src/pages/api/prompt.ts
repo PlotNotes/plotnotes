@@ -21,25 +21,24 @@ export default async function handler(req: any, res: any) {
     const userid = await getUserID(sessionid);
 
     const createShortStory = req.body.shortStory;
-
+    console.log("create short story: " + createShortStory);
     if (createShortStory) {
       const story = await getStory(req);
       const storyName = await createStoryName(story);
       res.status(200).send({story: story, storyName: storyName});
     } else {
-
+      console.log("prompt: " + req.body.prompt);
       const prompt = req.body.prompt;
       const storyName = await createStoryName(prompt);
-
-      let chapters: string[] = [];
+      console.log("story name: " + storyName);
 
       // Writes 1 chapter as a test, TODO: write more chapters
-      let chapter = await writeChapter(prompt, chapters);
-      chapters.push(chapter);
+      let chapter = await writeChapter(prompt);
 
-      res.status(200).send({chapters: chapters, storyName: storyName});
+      res.status(200).send({chapter: chapter, storyName: storyName});
     }
   } catch (err) {
+    // console.log(err);
     if (err instanceof TypeError && err.message == "Cannot read properties of undefined (reading 'userid')") {
       res.status(401).send({ response: "no session id" });
       return;
@@ -49,32 +48,30 @@ export default async function handler(req: any, res: any) {
 
 
 
-async function writeChapter(prompt: string, chapters: string[]): Promise<string> {
+async function writeChapter(prompt: string): Promise<string> {
 
-  if (chapters.length == 0) {
-    let content = `Write the first chapter of a story about '${prompt}', do not end the story just yet and use every remaining token.`
-    
-    const chapterPrompt = constructPrompt(content);
+  let content = `Write the first chapter of a story about '${prompt}', do not end the story just yet and use every remaining token.`
+  
+  const chapterPrompt = constructPrompt(content);
 
-    const openai = getOpenAIClient();
-    const completion = await openai.createChatCompletion(chapterPrompt);
+  const openai = getOpenAIClient();
+  const completion = await openai.createChatCompletion(chapterPrompt);
 
-    return completion.data.choices[0].message!.content.trim();
-  }
-
-  return "";
+  return completion.data.choices[0].message!.content.trim();
 }
 
 
 
 async function createStoryName(story: string): Promise<string> {
+  console.log("story: " + story);
   const openai = getOpenAIClient();
 
   let content = `Create a name for the story, include nothing except the name of the story: '${story}'.`
 
-  const prompt = constructPrompt(content);
-
+  const prompt = constructPrompt(content); 
+  console.log("prompt: " + prompt);
   const completion = await openai.createChatCompletion(prompt);
+  console.log("completion: " + completion.data.choices[0].message!.content.trim());
   return completion.data.choices[0].message!.content.trim();
 }
 
