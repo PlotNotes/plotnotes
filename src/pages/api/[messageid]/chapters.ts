@@ -9,7 +9,7 @@ export default async function chapterHistory(req: NextApiRequest, res: NextApiRe
     try {
         const sessionid = req.cookies.token as string;
         const userid = await getUserID(sessionid);
-
+        console.log("user id: " + userid);
         if (req.method == "GET") {
             await getRequest(req, res);
         } else if (req.method == "POST") {
@@ -38,22 +38,23 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const userId = await getUserID(sessionId);
-
+    console.log("user id: " + userId);
     // Given the prompt, get the message associated with the messageid and edit the story according to the prompt
     const messageQuery = await query(
         `SELECT message FROM chapters WHERE messageid = $1 AND userid = $2`,
         [messageid, userId]
     );
-
+    console.log("message query: " + messageQuery.rows.length);
+    console.log("message id: " + messageid);
     if (messageQuery.rows.length == 0) {
         res.status(200).send({ response: "no chapters" });
         return;
     }
 
     const message = (messageQuery.rows[0] as any).message;
-
-    const newMessage = await editChapter(prompt, message);
-    
+    console.log("message: " + message);
+    const newMessage = await editChapter(message, prompt);
+    console.log("new message: " + newMessage);
     // Sends the new message information back to the user so they can view it before they submit it
     res.status(200).send({ oldMessage: message, newMessage: newMessage });
 }

@@ -80,7 +80,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                     body: JSON.stringify({ prompt: prompt }),
                 }
             );
-
+            console.log("response: ", response);
             if (response.status === 401) {
                 Router.push(`/signin?from=/shortStories/${messageid}`);
                 return;
@@ -90,7 +90,8 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             const chapterInfo = await response.json();
 
             const { oldMessage, newMessage} = chapterInfo;
-
+            console.log("oldMessage: ", oldMessage);
+            console.log("newMessage: ", newMessage);
             // Returns a display for the user that shows the old story and the new story side by side, allowing them to
             // choose which one they want to keep
             return (
@@ -146,9 +147,11 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
       
     
     const handleAccept = async (ev) => {
+        console.log("Accepted");
     }
 
     const handleDeny = async (ev) => {
+        console.log("Denied");
     }
 
     // Displays the story corresponding to the messageID in a text area

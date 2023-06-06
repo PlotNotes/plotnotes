@@ -78,14 +78,47 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
             // Redirects the user to a page where they can compare the two stories and choose to accept or deny the new one
             const chapterInfo = await response.json();
 
-            const message = chapterInfo.message;
-
-            Router.push(`/`)
+            const { oldMessage, newMessage} = chapterInfo;
+            console.log('oldMessage: ', oldMessage);
+            console.log('newMessage: ', newMessage);
+            // Returns a display for the user that shows the old story and the new story side by side, allowing them to
+            // choose which one they want to keep
+            return (
+                    <div>
+                        <Head>
+                            <title>PlotNotes</title>
+                        </Head>
+                        <Header>
+                            <HomeButton />
+                            <HeaderItem href="/chapters" text="Chapters" />
+                            <HeaderItem href="/prompt" text="Prompt" />
+                        </Header>
+                        <ChapterBox chapter={oldMessage} messageID={messageid} buttonText="Copy Old Story" />
+                        <ChapterBox chapter={newMessage} messageID={messageid} buttonText="Copy New Story" />
+                        <Box
+                            display="flex"
+                            flexDirection="column"
+                            justifyContent="center"
+                            alignItems="center"
+                            bg="gray.50">
+                                <ActionButton buttonText="Accept" onClick={handleAccept} />
+                                <ActionButton buttonText="Deny" onClick={handleDeny} />
+                        </Box>
+                    </div>
+                );
 
         } catch(err) {
             console.log('messageid Error: ', err);
         }
     };
+
+    const handleAccept = async (ev) => {
+        console.log('Accepting new story');
+    }
+
+    const handleDeny = async (ev) => {
+        console.log('Denying new story');
+    }
       
       const ActionButton = ({ buttonText, onClick, isGenerating }) => (
         <Button variant='primary' onClick={onClick} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>

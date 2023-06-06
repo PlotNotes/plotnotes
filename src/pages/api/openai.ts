@@ -48,7 +48,6 @@ function getMaxTokens(content: string) {
     // return max_tokens > 4000 ? 4000 : max_tokens;
     const max_tokens = Math.floor(4096 - (content.length/4)) - 4;
     console.log("max tokens: ", max_tokens);
-    console.log("Content: ", content.length)
     // return max_tokens > 4000 ? 4000 : max_tokens;
     return max_tokens;
   }
