@@ -15,14 +15,22 @@ export default function Edit({ oldMessage, newMessage }) {
   const onAccept = async (ev) => {
     ev.preventDefault();
     try {
-      await fetch(`/api/${messageID}/edit`,
+      const response = await fetch(`/api/${messageID}/edit`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ messageid: messageID, accept: true }),
+            body: JSON.stringify({ accept: true, table: 'chapters' }),
           });
+        
+      if (response.status === 401) {
+        Router.push(`/signin?from=/edit/${messageID}`);  
+        return;
+      }
+
+      Router.push(`/chapters/${messageID}`);
+      
   } catch(err) {
     console.log('messageid Error: ', err);
   }
@@ -31,14 +39,22 @@ export default function Edit({ oldMessage, newMessage }) {
 const onReject = async (ev) => {
   ev.preventDefault();
   try {
-    await fetch(`/api/${messageID}/edit`,
+    const response = await fetch(`/api/${messageID}/edit`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ messageid: messageID, accept: false }),
+          body: JSON.stringify({ accept: false, table: 'chapters' }),
         });
+
+      if (response.status === 401) {
+        Router.push(`/signin?from=/edit/${messageID}`);  
+        return;
+      }
+
+      Router.push(`/chapters/${messageID}`);
+
   } catch(err) {
     console.log('messageid Error: ', err);
   }
