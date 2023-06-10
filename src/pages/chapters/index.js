@@ -17,8 +17,8 @@ export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chap
             </Head>
             <Header>
                 <HomeButton />
-                <HeaderItem href="/shortStories" text="Short Stories" />
                 <HeaderItem href="/prompt" text="Prompt" />
+                <HeaderItem href="/shortStories" text="Short Stories" />                
             </Header>
             <Box
             display="flex"

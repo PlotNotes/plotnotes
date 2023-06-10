@@ -31,23 +31,17 @@ export function constructPrompt(content: string) {
 }
 
 function getMaxTokens(content: string) {
-    // const encoding = new Tiktoken(
-    //   p50k_base.bpe_ranks,
-    //   p50k_base.special_tokens,
-    //   p50k_base.pat_str
-    // );
-    
-    // const tokens = encoding.encode(content);
+  const encoding = new Tiktoken(
+    p50k_base.bpe_ranks,
+    p50k_base.special_tokens,
+    p50k_base.pat_str
+  );
   
-    // encoding.free();
+  const tokens = encoding.encode(content);
+
+  encoding.free();
+
+  const max_tokens = (4096 - tokens.length) - 10;
   
-    // const max_tokens = Math.floor((4096 - tokens.length) - 6);
-    // console.log("max tokens: ", max_tokens);
-    
-    // console.log(max_tokens > 4000 ? 4000 : max_tokens)
-    // return max_tokens > 4000 ? 4000 : max_tokens;
-    const max_tokens = Math.floor(4096 - (content.length/4)) - 4;
-    console.log("max tokens: ", max_tokens);
-    // return max_tokens > 4000 ? 4000 : max_tokens;
-    return max_tokens;
+  return max_tokens;
   }

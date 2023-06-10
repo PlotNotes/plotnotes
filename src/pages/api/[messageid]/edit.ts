@@ -1,35 +1,27 @@
 import { query } from "../db";
-import { getUserID } from "../shortStoryCmds";
+import { userLoggedIn } from "../authchecks";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    try {
-        const sessionid = req.cookies.token as string;
-        const userid = await getUserID(sessionid);
+        const userid  = await userLoggedIn(req, res);
 
-        if (req.method == "GET") {
-            await getRequest(req, res);
-        }
-    } catch (e) {
-         // If the userid cannot be found from the sessionid, route the user back to the login page
-         if (e instanceof TypeError && e.message == "Cannot read properties of undefined (reading 'userid')") {
-            res.status(401).send({ response: "no session id" });
+        if (userid == "") {
+            res.status(401).send({ response: "Not logged in" });
             return;
         }
-    }
+
+        if (req.method == "GET") {
+            await getRequest(req, res, userid);
+        } else if (req.method == "POST") {
+            await postRequest(req, res, userid);
+        }
 }
 
-async function getRequest(req: NextApiRequest, res: NextApiResponse) {
+async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
 
-    // Checks that the user is logged in
-    const sessionid = req.cookies.token as string;
-    
-    if (!sessionid) {
-        res.status(401).send({ response: "no session id" });
-        return;
-    }
+}
 
-    const userid = await getUserID(sessionid);
+async function getRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
 
     // Gets the two stories associated with the user from the edits table
     const editsQuery = await query(

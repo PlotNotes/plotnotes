@@ -1,6 +1,6 @@
 import { ChatCompletionRequestMessageRoleEnum } from "openai";
 import { getOpenAIClient, constructPrompt } from "./openai";
-import { getUserID } from "./shortStoryCmds";
+import { getUserID } from "./authchecks";
 
 async function getStory(req: any) {
   const openai = getOpenAIClient();
@@ -11,8 +11,6 @@ async function getStory(req: any) {
   return completion.data.choices[0].message!.content.trim();
 
 }
-
-
 
 export default async function handler(req: any, res: any) {
 
@@ -47,8 +45,6 @@ export default async function handler(req: any, res: any) {
   }
 }
 
-
-
 async function writeChapter(prompt: string, chapters: string[]): Promise<string> {
 
   if (chapters.length == 0) {
@@ -65,8 +61,6 @@ async function writeChapter(prompt: string, chapters: string[]): Promise<string>
   return "";
 }
 
-
-
 async function createStoryName(story: string): Promise<string> {
   const openai = getOpenAIClient();
 
@@ -77,8 +71,6 @@ async function createStoryName(story: string): Promise<string> {
   const completion = await openai.createChatCompletion(prompt);
   return completion.data.choices[0].message!.content.trim();
 }
-
-
 
 export async function continueStory(prompt: string, oldStories: string[]): Promise<string> {
   const openai = getOpenAIClient();
@@ -100,8 +92,6 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
   const completion = await openai.createChatCompletion(continuePrompt);
   return completion.data.choices[0].message!.content.trim();
 }
-
-
 
 export async function continueChapters(prompt: string, previousChapters: string[]) {
 
@@ -127,8 +117,6 @@ export async function continueChapters(prompt: string, previousChapters: string[
   const completion = await openai.createChatCompletion(continuePrompt);
   return completion.data.choices[0].message!.content.trim();
 }
-
-
 
 async function summarize(story: string): Promise<string> {
   const openai = getOpenAIClient();

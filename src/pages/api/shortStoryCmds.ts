@@ -1,27 +1,25 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
+import { userLoggedIn } from './authchecks';
 
 export default async function insertStory(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method == "POST")
-    {
-        await postRequest(req, res);
-    }
-    else if (req.method == "GET")
-    {
-        await getRequest(req, res);
-    }
-}
 
-async function getRequest(req: NextApiRequest, res: NextApiResponse) {
-    // Gets the sessionId from the cookie
-    const sessionId = req.cookies.token;
-    if (!sessionId) {
-        res.status(401).send({ response: "no session id" });
+    const userid = await userLoggedIn(req, res);
+
+    if (userid == "") {
+        res.status(401).send({ response: "Not logged in" });
         return;
     }
 
-    const userId = await getUserID(sessionId);
+    if (req.method == "POST") {
+        await postRequest(req, res, userid);
+    }
+    else if (req.method == "GET") {
+        await getRequest(req, res, userid);
+    }
+}
 
+async function getRequest(req: NextApiRequest, res: NextApiResponse, userId: string) {
 
     // Returns the stories, checking the iterationID and parentID to keep only the most recent version of each story
     const stories = await updateStories(userId);
@@ -120,13 +118,12 @@ async function updateMessageIDs(stories: string[]): Promise<string[]> {
     return messageIDs;
 }
 
-async function postRequest(req: NextApiRequest, res: NextApiResponse) {
-    const { sessionId, story, storyName, prompt, iterationId } = req.body;
+async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
+    const { story, storyName, prompt, iterationId } = req.body;
     try {
-        const userId = await getUserID(sessionId);
         const storyIdQuery = await query(
             `INSERT INTO shortstories (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
-            [iterationId, userId, story, prompt, storyName, 0]
+            [iterationId, userid, story, prompt, storyName, 0]
         );
 
         res.status(200).send({ response: "success" });
@@ -148,15 +145,4 @@ export async function getStory(storyID: string): Promise<string> {
         console.error(err);
         throw err;
     }
-}
-
-export async function getUserID(sessionId: string): Promise<string>
-{
-    const userIdQuery = await query(
-        `SELECT (userid) FROM sessions WHERE id = $1`,
-        [sessionId]
-    );
-
-    const userId = (userIdQuery.rows[0] as any).userid;
-    return userId;
 }

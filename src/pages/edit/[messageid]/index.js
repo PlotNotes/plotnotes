@@ -9,8 +9,41 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 export default function Edit({ oldMessage, newMessage }) {
-  console.log('oldMessage: ', oldMessage);
-  console.log('newMessage: ', newMessage);
+
+  const messageID = useRouter().query.messageid;
+
+  const onAccept = async (ev) => {
+    ev.preventDefault();
+    try {
+      await fetch(`/api/${messageID}/edit`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ messageid: messageID, accept: true }),
+          });
+  } catch(err) {
+    console.log('messageid Error: ', err);
+  }
+}
+
+const onReject = async (ev) => {
+  ev.preventDefault();
+  try {
+    await fetch(`/api/${messageID}/edit`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ messageid: messageID, accept: false }),
+        });
+  } catch(err) {
+    console.log('messageid Error: ', err);
+  }
+}
+
   return (
     <div>
       <Head>
@@ -23,38 +56,48 @@ export default function Edit({ oldMessage, newMessage }) {
       </Header>
       <Box
         display="flex"
-        flexDirection="row"
+        flexDirection="column"
         alignItems="center"
         sx={{ paddingBottom: 6 }}>
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          sx={{ paddingLeft: 6, paddingRight:4 }}>
-            <Heading fontSize={5} color="black" mb={3}>Old Message</Heading>
-            <Textarea
-              cols={70}
-              rows={20}
-              value={oldMessage}
-              readOnly={true}/>
-              <Button variant='primary'>
-                Accept
-              </Button>
-          </Box>
           <Box
             display="flex"
-            flexDirection="column"
+            flexDirection="row"
             alignItems="center">
-            <Heading fontSize={5} color="black" mb={3}>New Message</Heading>
-            <Textarea
-              cols={70}
-              rows={20}
-              value={newMessage}
-              readOnly={true}/>
-              <Button variant='primary'>
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              sx={{ paddingRight:4 }}>
+                <Heading fontSize={5} color="black" mb={3}>Old Message</Heading>
+                <Textarea
+                  cols={70}
+                  rows={20}
+                  value={oldMessage}
+                  readOnly={true}/>
+              </Box>
+              <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center">
+                <Heading fontSize={5} color="black" mb={3}>New Message</Heading>
+                <Textarea
+                  cols={70}
+                  rows={20}
+                  value={newMessage}
+                  readOnly={true}/>
+              </Box>
+            </Box>
+            <Box
+              display="flex"
+              flexDirection="row"
+              alignItems="center">
+              <Button variant='primary' onClick={onAccept} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto', scale: 2 }}>
                 Accept
               </Button>
-          </Box>
+              <Button variant='primary' onClick={onReject} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+                Reject
+              </Button>
+            </Box>
       </Box>
     </div>
   );
