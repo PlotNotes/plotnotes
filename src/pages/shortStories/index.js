@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, PageLayout, Heading, Header, Button, Textarea, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Button, Textarea, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'

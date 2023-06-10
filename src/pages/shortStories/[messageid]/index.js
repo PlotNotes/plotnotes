@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Spinner } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'

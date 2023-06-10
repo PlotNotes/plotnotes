@@ -1,4 +1,3 @@
-import { ChatCompletionRequestMessageRoleEnum } from "openai";
 import { getOpenAIClient, constructPrompt } from "./openai";
 import { getUserID } from "./authchecks";
 
@@ -39,7 +38,7 @@ export default async function handler(req: any, res: any) {
     }
   } catch (err) {
     if (err instanceof TypeError && err.message == "Cannot read properties of undefined (reading 'userid')") {
-      res.status(401).send({ response: "no session id" });
+      res.status(401).send({ response: "Not logged in" });
       return;
     }
   }
@@ -85,7 +84,7 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
   } catch (err) {
     console.log("prompt error: ", err);
   }
-  let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token.`
+  let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token and only include the story.`
 
   const continuePrompt = constructPrompt(content);
 
@@ -110,7 +109,7 @@ export async function continueChapters(prompt: string, previousChapters: string[
   console.log(prompt.length + summaries.length)
   const openai = getOpenAIClient();
 
-  let content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token.`
+  let content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token and include only the story.`
 
   const continuePrompt = constructPrompt(content);
 

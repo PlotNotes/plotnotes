@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -8,7 +8,7 @@ import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 
 
-export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chapters }) {
+export default function ChapterDisplay({ storyNames, messageIDs, chapters }) {
 
     return (
         <div>
@@ -53,6 +53,39 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
         }, 2000);
     }
 
+    if (typeof storyNames === 'string') {
+        return (
+            <Box
+                display="flex"
+                alignItems="center">
+                    <Link href={`/shortStories/${messageIDs[index]}`}>
+                        <Box
+                            display="flex"
+                            flexDirection="row"
+                            justifyContent="center"
+                            alignItems="center"
+                            sx={{ paddingBottom: 3 }}>
+                            <Textarea
+                                disabled
+                                id={`story-${index}`}
+                                name={`story-${index}`}
+                                value={chapter.replace('"', '')}
+                                aria-label="Story"
+                                cols={90}
+                                rows={20}
+                            />
+                        </Box>
+                    </Link>
+                        <Button
+                        onClick={() => {
+                            copyStory(chapter);
+                        }}>
+                            {buttonText}
+                    </Button>
+            </Box>
+        );
+    }
+        
     return (
     <Box 
         display="flex"
@@ -162,7 +195,7 @@ export async function getServerSideProps(ctx) {
         };
     } else if (chapterInfo.response === 'no chapters') {
         return {
-            props: { sessionID, storyNames: [], messageIDs: [], chapters: [] },
+            props: { storyNames: [], messageIDs: [], chapters: [] },
         };
     }
     
@@ -170,5 +203,5 @@ export async function getServerSideProps(ctx) {
     const messageIDs = chapterInfo.messageIDs;
     const chapters = chapterInfo.chapters;
 
-    return { props: { sessionID, storyNames, messageIDs, chapters } };
+    return { props: { storyNames, messageIDs, chapters } };
 }

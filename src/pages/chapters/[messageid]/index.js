@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Spinner } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
-import Link from 'next/link'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios';
-import { HomeButton, HeaderItem } from '../index'
+import { HomeButton, HeaderItem, ChapterMap } from '../index'
 
-export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
-    
+export default function Page({ sessionID, chapters, storyNames, messageIDs }) {    
     const router = useRouter();
     const { messageid } = router.query;
 
@@ -47,7 +45,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
             // Redirect the user to the page of the new story by using the new messageID given from the server
             const chapterInfo = await response.json();
 
-            const messageID = chapterInfo.messageID;
+            const messageID = chapterInfo.messageid;
 
             Router.push(`/chapters/${messageID}`);
 
@@ -108,24 +106,6 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
         </Button>
       );      
 
-      const ChapterBox = ({ chapter, messageID, buttonText }) => (
-        <Box
-             display="flex"
-             alignContent="center">
-          <Link href={`/chapters/${messageID}`}>
-            <Box alignItems="center" sx={{ paddingBottom: 3 }}>
-              <Box display="flex" flexDirection="row" alignItems="center">
-                <Textarea disabled fontWeight="bold" color="black" cols={90} rows={20} value={chapter}/>
-              </Box>
-            </Box>
-          </Link>
-          <Button onClick={() => { copyStory(chapter); }}>
-            {buttonText}
-          </Button>
-        </Box>
-      );
-      
-
     return (
         <div>
             <Head>
@@ -149,8 +129,8 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                     </Heading>
                     
                     {/* Creates a map for all provided chapters. There should be a copy button on the right side of each textarea */}
-                    { chapters.map((chapter, index) => (
-                        <ChapterBox key={messageIDs[index]} chapter={chapter} messageID={messageIDs[index]} buttonText={buttonText} />
+                    { chapters.map((chapter, index) => (                        
+                        <ChapterMap key={messageIDs[index]} chapter={chapter} messageIDs={messageIDs} storyNames={storyNames[0]} />
                     ))}
                     {/* Textarea at the bottom to allow the user to add onto the existing story */}
                    <Box

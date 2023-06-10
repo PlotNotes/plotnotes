@@ -1,7 +1,6 @@
 import { OpenAIApi, Configuration, ChatCompletionRequestMessageRoleEnum } from "openai";
 import { Tiktoken } from "@dqbd/tiktoken";
 import p50k_base from "@dqbd/tiktoken/encoders/p50k_base.json";
-import { get_encoding } from "@dqbd/tiktoken";
 
 export function getOpenAIConfiguration() {
   return new Configuration({

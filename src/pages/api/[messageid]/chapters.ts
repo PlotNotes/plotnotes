@@ -95,7 +95,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userId: st
     );
 
     const seriesID = (seriesIDQuery.rows[0] as any).seriesid;
-    let chapterid = (seriesIDQuery.rows[0] as any).seriesid;
+    let chapterid = (seriesIDQuery.rows[0] as any).chapterid;
     chapterid = Number(chapterid) + 1;
 
     // Gets all previous chapters of the story, ordering with the lowest chapterid first
@@ -128,7 +128,6 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userId: st
         `SELECT messageid FROM chapters WHERE seriesid = $1 AND chapterid = $2`,
         [seriesID, chapterid]
     );
-    console.log("new message id: " + newMessageIDQuery.rows[0]);
 
     const newMessageID = (newMessageIDQuery.rows[0] as any).messageid;
 
