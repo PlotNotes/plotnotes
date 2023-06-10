@@ -13,7 +13,8 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
     const router = useRouter();
     const { messageid } = router.query;
 
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [buttonText, setButtonText] = useState('Copy');
     const [prompt, setPrompt] = useState('');
 
@@ -23,7 +24,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
 
     const handleSubmit = async (ev) => {
         ev.preventDefault();
-        setIsGenerating(true);
+        setIsSubmitting(true);
 
         try {
 
@@ -53,10 +54,13 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
         } catch(err) {
             console.log('messageid Error: ', err);
         }
+
+        setIsSubmitting(false);
     };
     
     const handleEdit = async (ev) => {
         ev.preventDefault();
+        setIsEditing(true);
 
         try {
             const response = await fetch(`/api/${messageid}/chapters`,
@@ -84,11 +88,13 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
             }
             
             // Redirects the user to the page to comapre the two stories
-            Router.push(`/edit/${messageid}`);
+            Router.push(`/chapters/${messageid}/edit`);
 
         } catch(err) {
             console.log('messageid Error: ', err);
         }
+
+        setIsEditing(false);
     };
 
       const ActionButton = ({ buttonText, onClick, isGenerating }) => (
@@ -170,8 +176,8 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                                 flexDirection="row"
                                 alignItems="center"
                                 sx={{ paddingBottom: 6 }}>
-                                <ActionButton buttonText="Submit" onClick={handleSubmit} isGenerating={isGenerating} />
-                                <ActionButton buttonText="Edit" onClick={handleEdit} isGenerating={isGenerating} />
+                                <ActionButton buttonText="Submit" onClick={handleSubmit} isGenerating={isSubmitting} />
+                                <ActionButton buttonText="Edit" onClick={handleEdit} isGenerating={isEditing} />
                             </Box>
                     </Box>
             </Box>

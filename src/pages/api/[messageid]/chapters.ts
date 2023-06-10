@@ -45,7 +45,7 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: str
     
     // Inserts the old and new stories into the edits table
     await query(
-        `INSERT INTO edits (userid, oldmessage, newmessage, messageid) VALUES ($1, $2, $3, $4)`,
+        `INSERT INTO edits (userid, oldmessage, newmessage, messageid, storytype) VALUES ($1, $2, $3, $4, 'chapter')`,
         [userid, message, newMessage, messageid]
     );
 

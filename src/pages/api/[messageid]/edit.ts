@@ -27,18 +27,18 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: st
     if (accept) {
         console.log("accept");
         const newMessageQuery = await query(
-            `SELECT newmessage FROM edits WHERE userid = $1 AND messageid = $2`,
-            [userid, messageid]
+            `SELECT newmessage FROM edits WHERE userid = $1 AND messageid = $2 AND storytype = $3`,
+            [userid, messageid, table]
         );
-
+        console.log('userid: ' + userid + ' messageid: ' + messageid + ' table: ' + table)
         const newMessage = (newMessageQuery.rows[0] as any).newmessage;
 
-        if (table == "shortstories") {
+        if (table == "shortstory") {
             await query(
                 `UPDATE shortstories SET message = $1 WHERE messageid = $2`,
                 [newMessage, messageid]
             );
-        } else if (table == "chapters") {
+        } else if (table == "chapter") {
             await query(
                 `UPDATE chapters SET message = $1 WHERE messageid = $2`,
                 [newMessage, messageid]

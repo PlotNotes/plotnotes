@@ -104,7 +104,7 @@ export async function continueChapters(prompt: string, previousChapters: string[
   }
 
   // If the prompt is too long, summarize the prompt
-  if (prompt.length + summaries.length > 3500) {
+  if (prompt.length + summaries.length > 1000) {
     summaries = await summarize(summaries);
   }
   console.log(prompt.length + summaries.length)
@@ -131,16 +131,18 @@ async function summarize(story: string): Promise<string> {
 }
 
 export async function editExcerpt(chapter: string, prompt: string): Promise<string> {
+  console.log("edit excerpt")
   const openai = getOpenAIClient();
 
   if (chapter.length + prompt.length > 3500) {
     prompt = await summarize(prompt);
   }
-
+  console.log(chapter.length + prompt.length)
   let content = `Edit the following: '${chapter}' using the prompt: '${prompt}', using every remaining token.`
   console.log(content);
   const editPrompt = constructPrompt(content);
 
   const completion = await openai.createChatCompletion(editPrompt);
+  console.log(completion.data.choices[0].message!.content.trim());
   return completion.data.choices[0].message!.content.trim();
 }

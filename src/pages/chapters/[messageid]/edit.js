@@ -21,7 +21,7 @@ export default function Edit({ oldMessage, newMessage }) {
           headers: {
             'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ accept: true, table: 'chapters' }),
+            body: JSON.stringify({ accept: true, table: 'chapter' }),
           });
         
       if (response.status === 401) {
@@ -45,11 +45,11 @@ const onReject = async (ev) => {
         headers: {
           'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ accept: false, table: 'chapters' }),
+          body: JSON.stringify({ accept: false, table: 'chapter' }),
         });
 
       if (response.status === 401) {
-        Router.push(`/signin?from=/edit/${messageID}`);  
+        Router.push(`/signin?from=chapters/${messageID}/edit`);  
         return;
       }
 

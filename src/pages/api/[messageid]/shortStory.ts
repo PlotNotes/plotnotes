@@ -27,7 +27,7 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: str
 
     // Given the prompt, get the message associated with the messageid and edit the story according to the prompt
     const messageQuery = await query(
-        `SELECT message FROM chapters WHERE messageid = $1 AND userid = $2`,
+        `SELECT message FROM shortstories WHERE messageid = $1 AND userid = $2`,
         [messageid, userid]
     );
     
@@ -39,10 +39,10 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: str
     const message = (messageQuery.rows[0] as any).message;
     
     const newMessage = await editExcerpt(message, prompt);
-    
+    console.log("new message: " + newMessage);
     // Inserts the old and new stories into the edits table
     await query(
-        `INSERT INTO edits (userid, oldmessage, newmessage, messageid) VALUES ($1, $2, $3, $4)`,
+        `INSERT INTO edits (userid, oldmessage, newmessage, messageid, storytype) VALUES ($1, $2, $3, $4, 'shortstory')`,
         [userid, message, newMessage, messageid]
     );
 

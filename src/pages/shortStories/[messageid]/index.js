@@ -14,7 +14,8 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
     const { messageid } = router.query;
 
 
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [buttonText, setButtonText] = useState('Copy');
     const [prompt, setPrompt] = useState('');
 
@@ -24,7 +25,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
     const handleSubmit = async (ev) => {
         ev.preventDefault();
-        setIsGenerating(true);
+        setIsSubmitting(true);
         try {
             const response = await fetch(`/api/${messageid}/shortStory`,
                 {
@@ -52,15 +53,15 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             console.log('messageid Error: ', err);
         }
 
-        setIsGenerating(false);
+        setIsSubmitting(false);
     };
 
-    const ActionButton = ({ buttonText, onClick }) => (
-        <Button variant='primary' onClick={onClick} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+    const ActionButton = ({ buttonText, onClick, trigger }) => (
+        <Button variant='primary' onClick={onClick} disabled={trigger} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
             <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
                 <Box>{buttonText}</Box>
                     <Box>
-                        <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
+                        <Spinner size="small" sx={{marginLeft: "12px", display: trigger ? "block" : "none"}} />
                     </Box>
             </Box>
         </Button>
@@ -68,9 +69,10 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
     const handleEdit = async (ev) => {
         ev.preventDefault();
+        setIsEditing(true);
 
         try {
-            const response = await fetch(`/api/${messageid}/chapters`,
+            const response = await fetch(`/api/${messageid}/shortStory`,
                 {
                     method: 'PUT',
                     headers: {
@@ -80,79 +82,29 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                     body: JSON.stringify({ prompt: prompt }),
                 }
             );
-            console.log("response: ", response);
+
             if (response.status === 401) {
-                Router.push(`/signin?from=/shortStories/${messageid}`);
+                Router.push(`/signin?from=/shortStory/${messageid}`);
                 return;
             }
 
             // Redirects the user to a page where they can compare the two stories and choose to accept or deny the new one
             const chapterInfo = await response.json();
 
-            const { oldMessage, newMessage} = chapterInfo;
-            console.log("oldMessage: ", oldMessage);
-            console.log("newMessage: ", newMessage);
-            // Returns a display for the user that shows the old story and the new story side by side, allowing them to
-            // choose which one they want to keep
-            return (
-                    <div>
-                        <Head>
-                            <title>PlotNotes</title>
-                        </Head>
-                        <Header>
-                            <HomeButton />
-                            <HeaderItem href="/chapters" text="Chapters" />
-                            <HeaderItem href="/prompt" text="Prompt" />
-                        </Header>
-                        <StoryBox title="Old Story" message={oldMessage} />
-                        <StoryBox title="New Story" message={newMessage} />
-                        <Box
-                            display="flex"
-                            flexDirection="column"
-                            justifyContent="center"
-                            alignItems="center"
-                            bg="gray.50">
-                                <ActionButton buttonText="Accept" onClick={handleAccept} />
-                                <ActionButton buttonText="Deny" onClick={handleDeny} />
-                        </Box>
-                    </div>
-                );
+            if (chapterInfo.error) {
+                alert(chapterInfo.error);
+                return;
+            }
+            
+            // Redirects the user to the page to comapre the two stories
+            Router.push(`/shortStories/${messageid}/edit`);
 
         } catch(err) {
             console.log('messageid Error: ', err);
         }
+
+        setIsEditing(false);
     };
-
-    const StoryBox = ({ title, message }) => (
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          bg="gray.50">
-          <Heading
-            fontSize={24}
-            fontWeight="bold"
-            color="black"
-            sx={{ paddingTop: 4 }}>
-            {title}
-          </Heading>
-          <Textarea
-            fontWeight="bold"
-            color="black"
-            cols={90}
-            rows={10}
-            value={message}/>
-        </Box>
-      );
-      
-    
-    const handleAccept = async (ev) => {
-        console.log("Accepted");
-    }
-
-    const handleDeny = async (ev) => {
-        console.log("Denied");
-    }
 
     // Displays the story corresponding to the messageID in a text area
     // There should be a copy button on the right side of the textarea
@@ -201,8 +153,8 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                             <Box
                                 display="flex"
                                 flexDirection="row">
-                                <ActionButton buttonText="Submit" onClick={handleSubmit} />
-                                <ActionButton buttonText="Edit" onClick={handleEdit} />
+                                <ActionButton buttonText="Submit" onClick={handleSubmit} trigger={isSubmitting} />
+                                <ActionButton buttonText="Edit" onClick={handleEdit} trigger={isEditing} />
                             </Box>
                     </Box>
             </Box>
