@@ -111,7 +111,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
     return (
         <div>
             <Head>
-                <title>PlotNotes</title>
+                <title>PlotNotes - Short Story {title}</title>
             </Head>
             <Header>
                 <HomeButton />

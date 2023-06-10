@@ -63,7 +63,7 @@ const onReject = async (ev) => {
   return (
     <div>
       <Head>
-        <title>PlotNotes</title>
+        <title>PlotNotes - Chapter Edit</title>
       </Head>
       <Header>
         <HomeButton />

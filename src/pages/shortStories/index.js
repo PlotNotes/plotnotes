@@ -14,7 +14,7 @@ export default function History({sessionID, stories, prompts, storyNames, messag
     return (
         <div>
             <Head>
-                <title>PlotNotes</title>
+                <title>PlotNotes - Short Stories</title>
             </Head>
             <Header>
                 <HomeButton />

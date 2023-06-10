@@ -129,7 +129,7 @@ export default function Prompt({ sessionID }) {
   return (  
     <div>
         <Head>
-            <title>PlotNotes</title>
+            <title>PlotNotes - Prompt</title>
         </Head>
         <Header>
             <Header.Item>

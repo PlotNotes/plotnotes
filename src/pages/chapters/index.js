@@ -13,7 +13,7 @@ export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chap
     return (
         <div>
             <Head>
-                <title>PlotNotes</title>
+                <title>PlotNotes - Chapters</title>
             </Head>
             <Header>
                 <HomeButton />

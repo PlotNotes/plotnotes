@@ -129,13 +129,12 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
     return (
         <div>
             <Head>
-                <title>PlotNotes</title>
+                <title>PlotNotes - Chapters {storyNames[0]}</title>
             </Head>
             <Header>
                 <HomeButton />
                 <HeaderItem href="/shortStories" text="Short Stories" />
                 <HeaderItem href="/prompt" text="Prompt" />
-                <HeaderItem href="/chapters" text="Chapters" />
             </Header>
             <Box
                 display="flex"
