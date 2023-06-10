@@ -142,14 +142,14 @@ async function summarize(story: string): Promise<string> {
   return completion.data.choices[0].message!.content.trim();
 }
 
-export async function editChapter(chapter: string, prompt: string): Promise<string> {
+export async function editExcerpt(chapter: string, prompt: string): Promise<string> {
   const openai = getOpenAIClient();
 
   if (chapter.length + prompt.length > 3500) {
     prompt = await summarize(prompt);
   }
 
-  let content = `Edit the following chapter: '${chapter}' using the prompt: '${prompt}', using every remaining token.`
+  let content = `Edit the following: '${chapter}' using the prompt: '${prompt}', using every remaining token.`
   console.log(content);
   const editPrompt = constructPrompt(content);
 

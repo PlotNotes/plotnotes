@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
 import { getUserID } from '../shortStoryCmds';
-import { continueStory } from '../prompt';
+import { continueStory, editExcerpt } from '../prompt';
 
 export default async function storyHistory(req: NextApiRequest, res: NextApiResponse) {
 
@@ -13,6 +13,8 @@ export default async function storyHistory(req: NextApiRequest, res: NextApiResp
             await getRequest(req, res);
         } else if (req.method == "POST") {
             await postRequest(req, res);
+        } else if (req.method == "PUT") {
+            await putRequest(req, res);
         }
     } catch (e) {
         // If the userid cannot be found from the sessionid, route the user back to the login page
@@ -23,6 +25,42 @@ export default async function storyHistory(req: NextApiRequest, res: NextApiResp
     }
 }
 
+async function putRequest(req: NextApiRequest, res: NextApiResponse) {
+    const messageid = req.query.messageid as string;
+    const sessionId = req.cookies.token;
+    const prompt = req.body.prompt as string;
+
+    if (!sessionId) {
+        res.status(401).send({ response: "no session id" });
+        return;
+    }
+
+    const userId = await getUserID(sessionId);
+    console.log("user id: " + userId);
+    // Given the prompt, get the message associated with the messageid and edit the story according to the prompt
+    const messageQuery = await query(
+        `SELECT message FROM chapters WHERE messageid = $1 AND userid = $2`,
+        [messageid, userId]
+    );
+    
+    if (messageQuery.rows.length == 0) {
+        res.status(200).send({ response: "no chapters" });
+        return;
+    }
+
+    const message = (messageQuery.rows[0] as any).message;
+    
+    const newMessage = await editExcerpt(message, prompt);
+    
+    // Inserts the old and new stories into the edits table
+    await query(
+        `INSERT INTO edits (userid, oldmessage, newmessage, messageid) VALUES ($1, $2, $3, $4)`,
+        [userId, message, newMessage, messageid]
+    );
+
+    // Sends the new message information back to the user so they can view it before they submit it
+    res.status(200).send({ response: "success" });
+}
 async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     console.log("post request");
     const messageid = req.query.messageid as string;

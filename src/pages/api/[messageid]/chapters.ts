@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
 import { getUserID } from '../shortStoryCmds';
 import { continueChapters } from '../prompt';
-import { editChapter } from '../prompt';
+import { editExcerpt } from '../prompt';
 
 
 export default async function chapterHistory(req: NextApiRequest, res: NextApiResponse) {
@@ -44,19 +44,24 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse) {
         `SELECT message FROM chapters WHERE messageid = $1 AND userid = $2`,
         [messageid, userId]
     );
-    console.log("message query: " + messageQuery.rows.length);
-    console.log("message id: " + messageid);
+    
     if (messageQuery.rows.length == 0) {
         res.status(200).send({ response: "no chapters" });
         return;
     }
 
     const message = (messageQuery.rows[0] as any).message;
-    console.log("message: " + message);
-    const newMessage = await editChapter(message, prompt);
-    console.log("new message: " + newMessage);
+    
+    const newMessage = await editExcerpt(message, prompt);
+    
+    // Inserts the old and new stories into the edits table
+    await query(
+        `INSERT INTO edits (userid, oldmessage, newmessage, messageid) VALUES ($1, $2, $3, $4)`,
+        [userId, message, newMessage, messageid]
+    );
+
     // Sends the new message information back to the user so they can view it before they submit it
-    res.status(200).send({ oldMessage: message, newMessage: newMessage });
+    res.status(200).send({ response: "success" });
 }
 
 
