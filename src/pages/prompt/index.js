@@ -6,7 +6,7 @@ import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
-
+import { LogoutButton } from '../signin';
 
 export default function Prompt({ sessionID }) {
   const [prompt, setPrompt] = useState('');
@@ -153,6 +153,8 @@ export default function Prompt({ sessionID }) {
                     </Link>
                 </Button>
             </Header.Item>
+            <Header.Item full />
+            <LogoutButton />
         </Header>
         <Box
             display="flex"
