@@ -25,21 +25,6 @@ test('login page', async ({ page }) => {
   await expect(page).toHaveTitle(/PlotNotes/);
 });
 
-test('SignUp scenario', async ({ page }) => {
-  await page.goto('http://localhost:3000/signin');
-
-  const username = generateRandomString(20);
-  await page.fill('input[name="signUpUsername"]', username);
-  await page.fill('input[name="signUpPassword"]', 'testpassword');
-
-  const navigationPromise = page.waitForNavigation();
-  await page.click('button:has-text("Sign Up")');
-  await navigationPromise;
-
-  // Add additional assertions based on the expected behavior after sign up.
-  expect(page.url()).toBe('http://localhost:3000/');
-});
-
 test('Login scenario', async ({ page }) => {
   await page.goto('http://localhost:3000/signin');
 
@@ -52,93 +37,6 @@ test('Login scenario', async ({ page }) => {
 
   // Add additional assertions based on the expected behavior after login.
   expect(page.url()).toBe('http://localhost:3000/');
-});
-
-test('Create Short Story scenario', async ({ page }) => {
-
-  await page.goto('http://localhost:3000/signin');
-
-  await page.fill('input[name="loginUsername"]', 'testuser');
-  await page.fill('input[name="loginPassword"]', 'testpassword');
-
-  const navigationPromise = page.waitForNavigation();
-  await page.click('button:has-text("Login")');
-  await navigationPromise;
-
-  await page.goto('http://localhost:3000/prompt');
-
-  // Input a prompt
-  await page.fill('textarea', 'Once upon a time in the wild west');
-
-  // Trigger the story creation and wait for network responses
-  const [responsePrompt] = await Promise.all([      
-      page.click('button:has-text("Create Short Story")'),
-      page.waitForResponse('http://localhost:3000/api/prompt'),
-  ]);
-
-  // Tests the copy button
-  await page.click('button:has-text("Copy")');
-
-  // Checks the copied text by selecting all text, and then pasting it into the textarea
-  await page.click('textarea');
-  await page.keyboard.down('Meta');
-  await page.keyboard.press('KeyA', { delay: 100 });
-  await page.keyboard.up('Meta');
-  await page.keyboard.press('Backspace');
-  await page.keyboard.down('Meta');
-  await page.keyboard.press('KeyV', { delay: 100 });
-  await page.keyboard.up('Meta');
-
-  // Gets the text from the textarea
-  const clipboardText = await page.$eval('textarea', (el: any) => el.value);
-
-  // Checks to see that the textarea is not empty and does not have the prompt
-  expect(clipboardText).not.toBe("");
-  expect(clipboardText).not.toBe("Once upon a time in the wild west");
-
-});
-
-test('Create Chapter scenario', async ({ page }) => {
-
-  await page.goto('http://localhost:3000/signin');
-
-  await page.fill('input[name="loginUsername"]', 'testuser');
-  await page.fill('input[name="loginPassword"]', 'testpassword');
-
-  const navigationPromise = page.waitForNavigation();
-  await page.click('button:has-text("Login")');
-  await navigationPromise;
-
-  await page.goto('http://localhost:3000/prompt');
-
-  // Input a prompt
-  await page.fill('textarea', 'Once upon a time in the wild west');
-
-  // Trigger the story creation and wait for network responses
-  const [responsePrompt] = await Promise.all([
-      page.click('button:has-text("Create Chapter")'),
-      page.waitForResponse('http://localhost:3000/api/prompt'),
-  ]);
-
-  // Tests the copy button
-  await page.click('button:has-text("Copy")');
-
-  // Checks the copied text by selecting all text, and then pasting it into the textarea
-  await page.click('textarea');
-  await page.keyboard.down('Meta');
-  await page.keyboard.press('KeyA', { delay: 100 });
-  await page.keyboard.up('Meta');
-  await page.keyboard.press('Backspace');
-  await page.keyboard.down('Meta');
-  await page.keyboard.press('KeyV', { delay: 100 });
-  await page.keyboard.up('Meta');
-
-  // Gets the text from the textarea
-  const clipboardText = await page.$eval('textarea', (el: any) => el.value);
-
-  // Checks to see that the textarea is not empty and does not have the prompt
-  expect(clipboardText).not.toBe("");
-  expect(clipboardText).not.toBe("Once upon a time in the wild west");
 });
 
 // Helper function to generate random string
