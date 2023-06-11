@@ -145,7 +145,5 @@ export async function editExcerpt(chapter: string, prompt: string): Promise<stri
     editedChapter = editedChapter.slice(1, -1);
   }
 
-  console.log(editedChapter);
-
   return editedChapter;
 }

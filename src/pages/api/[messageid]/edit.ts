@@ -18,19 +18,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
-    console.log("post request");
+    
     // Determines if the user accepted or rejected the edit along with the table they are editing
     const { accept, table } = req.body;
     const messageid = req.query.messageid as string;
     
     // If the user accepted the edit, retrieve the new message from the edits table and then add it to the table
     if (accept) {
-        console.log("accept");
+        
         const newMessageQuery = await query(
             `SELECT newmessage FROM edits WHERE userid = $1 AND messageid = $2 AND storytype = $3`,
             [userid, messageid, table]
         );
-        console.log('userid: ' + userid + ' messageid: ' + messageid + ' table: ' + table)
+        
         const newMessage = (newMessageQuery.rows[0] as any).newmessage;
 
         if (table == "shortstory") {
@@ -45,7 +45,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: st
             );
         }
     } 
-    console.log("removing from edits")
+    
     // Deletes the edit from the edits table
     await query(
         `DELETE FROM edits WHERE userid = $1 AND messageid = $2`,

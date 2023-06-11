@@ -39,7 +39,7 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: str
     const message = (messageQuery.rows[0] as any).message;
     
     const newMessage = await editExcerpt(message, prompt);
-    console.log("new message: " + newMessage);
+    
     // Inserts the old and new stories into the edits table
     await query(
         `INSERT INTO edits (userid, oldmessage, newmessage, messageid, storytype) VALUES ($1, $2, $3, $4, 'shortstory')`,
@@ -71,10 +71,10 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: st
 
         parentID = (parentIDQuery.rows[0] as any).parentid;
     }
-    console.log("parent id: " + parentID);
+    
     // Gets the title of the parent story
     const parentTitle = await getTitle(messageid);
-    console.log("parent title: " + parentTitle);
+    
     // Gets every previous story in this iteration and puts it in a string array
     const storiesQuery = await query(
         `SELECT (message) FROM shortstories WHERE messageid = $1 OR parentid = $1`,
@@ -84,8 +84,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: st
     let stories: string[] = [];
 
     for (let i = 0; i < storiesQuery.rows.length; i++) {
-        stories.push((storiesQuery.rows[i] as any).message);
-        console.log("story: " + (storiesQuery.rows[i] as any).message);
+        stories.push((storiesQuery.rows[i] as any).message);        
     }
 
     const story = await continueStory(prompt, stories);

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, Spinner } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
+import Link from 'next/link'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios';
-import { HomeButton, HeaderItem, StoryMap } from '../index'
+import { HomeButton, HeaderItem } from '../index'
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
-
+    
     // Gets the messageID from the URL
     const router = useRouter();
     const { messageid } = router.query;
@@ -127,7 +128,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                         {title}
                 </Heading>
                     {stories.map((story, index) => (
-                        <StoryMap key={messageIDs[index]} story={story} index={index} messageIDs={messageIDs} storyNames={title} />
+                        <StoryMap key={messageIDs[index]} story={story} index={index} messageID={messageIDs[index]} sessionID={sessionID} />
                     ))
                     }
                     {/* An area where the user can add onto the existing story underneath all the stories */}
@@ -160,6 +161,100 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             </Box>
         </div>
     )
+}
+
+function StoryMap({story, index, messageID, sessionID}) {
+    const [manualEdit, setManualEdit] = useState(false);
+    const [editText, setEditText] = useState('Edit');
+    const [buttonText, setButtonText] = useState('Copy');
+
+    const copyStory = async (story) => {
+
+        navigator.clipboard.writeText(story);
+
+        setButtonText('Copied!');
+
+        setTimeout(() => {
+            setButtonText('Copy');
+        }, 1000);
+    }
+
+    return (
+        <Box
+            display="flex"
+            alignItems="center">
+                <Link href={`/shortStories/${messageID}`}
+                    onClick={(ev) => {
+                        if (manualEdit) {
+                            ev.preventDefault();
+                        }
+                    }}>
+                    <Box
+                        display="flex"
+                        flexDirection="row"
+                        justifyContent="center"
+                        alignItems="center"
+                        sx={{ paddingBottom: 3 }}>
+                        <Textarea
+                            disabled={!manualEdit}
+                            id={`story-${index}`}
+                            name={`story-${index}`}
+                            defaultValue={story}
+                            aria-label="Story"
+                            cols={90}
+                            rows={20}
+                        />
+                    </Box>
+                </Link>
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center">
+                        <Button
+                            onClick={() => {
+                                copyStory(story);
+                            }}>
+                                {buttonText}
+                        </Button>
+                        <Button
+                            sx={{ marginTop: 4 }}
+                            onClick={() => {
+                                setManualEdit(!manualEdit);
+                                if (!manualEdit) {
+                                    setEditText('Save');
+                                } else {
+                                    setEditText('Edit');
+                                    saveEdit(document.getElementById(`story-${index}`).value, sessionID, messageID);
+                                }
+                            }}>
+                                {editText}
+                        </Button>
+                </Box>
+        </Box>
+    );
+}
+
+async function saveEdit(story, sessionID, messageID) {
+    try {
+        const response = await fetch(`/api/shortStoryCmds`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',   
+                    'Cookie': `token=${sessionID}`,                 
+                },
+                body: JSON.stringify({ story: story, messageid: messageID }),
+            }
+        );
+
+        if (response.status === 401) {
+            Router.push(`/signin?from=/shortStories/${messageID}`);
+            return;
+        }
+
+    } catch(err) {
+        console.log('messageid Error: ', err);
+    }
 }
 
 export async function getServerSideProps(ctx) {

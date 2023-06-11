@@ -16,7 +16,22 @@ export default async function insertStory(req: NextApiRequest, res: NextApiRespo
     }
     else if (req.method == "GET") {
         await getRequest(req, res, userid);
+    } else if (req.method == "PUT") {
+        await putRequest(req, res, userid);
     }
+}
+
+async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
+
+    const story = req.body.story as string;
+    const messageid = req.body.messageid as string;
+    
+    await query(
+        `UPDATE shortstories SET message = $1 WHERE messageid = $2 AND userid = $3`,
+        [story, messageid, userid]
+    );
+
+    res.status(200).send({ response: "story updated" });
 }
 
 async function getRequest(req: NextApiRequest, res: NextApiResponse, userId: string) {

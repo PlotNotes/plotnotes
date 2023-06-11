@@ -25,7 +25,7 @@ async function putChapter(req: NextApiRequest, res: NextApiResponse, userid: str
     const story = req.body.story as string;
     const messageid = req.body.messageid as string;
 
-    const insertChapterQuery = await query(
+    await query(
         `UPDATE chapters SET message = $1 WHERE messageid = $2 AND userid = $3`,
         [story, messageid, userid]
     );

@@ -62,7 +62,7 @@ async function getRequest(req: NextApiRequest, res: NextApiResponse, userId: str
         `SELECT message, name, messageid FROM chapters WHERE seriesid = (SELECT seriesid FROM chapters WHERE messageid = $1) AND chapterid <= (SELECT chapterid FROM chapters WHERE messageid = $1) AND userid = $2 ORDER BY chapterid ASC`,
         [messageid, userId]
     );
-    console.log("series id query: " + seriesIDQuery.rows.length);
+    
     if (seriesIDQuery.rows.length == 0) {
         res.status(200).send({ response: "no chapters" });
         return;
