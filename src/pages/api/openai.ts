@@ -1,6 +1,8 @@
 import { OpenAIApi, Configuration, ChatCompletionRequestMessageRoleEnum } from "openai";
 import { Tiktoken } from "@dqbd/tiktoken";
 import p50k_base from "@dqbd/tiktoken/encoders/p50k_base.json";
+import cl100k_base from "@dqbd/tiktoken/encoders/cl100k_base.json";
+import { get_encoding } from "@dqbd/tiktoken";
 
 export function getOpenAIConfiguration() {
   return new Configuration({
@@ -30,17 +32,17 @@ export function constructPrompt(content: string) {
 }
 
 function getMaxTokens(content: string) {
-  const encoding = new Tiktoken(
-    p50k_base.bpe_ranks,
-    p50k_base.special_tokens,
-    p50k_base.pat_str
-  );
+    const encoding = new Tiktoken(
+      p50k_base.bpe_ranks,
+      p50k_base.special_tokens,
+      p50k_base.pat_str
+    );
+    
+    const tokens = encoding.encode(content);
   
-  const tokens = encoding.encode(content);
-
-  encoding.free();
-
-  const max_tokens = (4096 - tokens.length) - 10;
+    encoding.free();
   
-  return max_tokens;
+    const max_tokens = (4096 - tokens.length) - 10;
+    
+    return max_tokens;
   }
