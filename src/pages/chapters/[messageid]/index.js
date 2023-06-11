@@ -7,6 +7,7 @@ import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
 import axios from 'axios';
 import { HomeButton, HeaderItem } from '../index'
+import { LogoutButton } from '../../signin';
 
 export default function Page({ sessionID, chapters, storyNames, messageIDs }) {    
     const router = useRouter();
@@ -115,6 +116,8 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                 <HomeButton />
                 <HeaderItem href="/prompt" text="Prompt" />
                 <HeaderItem href="/shortStories" text="Short Stories" />
+                <Header.Item full />
+                <LogoutButton />
             </Header>
             <Box
                 display="flex"

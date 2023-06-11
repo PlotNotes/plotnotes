@@ -6,6 +6,7 @@ import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
+import { LogoutButton } from '../signin';
 
 export default function History({sessionID, stories, prompts, storyNames, messageIDs}) {    
     // Upon loading the page, the user is presented with a list of their previous stories
@@ -20,6 +21,8 @@ export default function History({sessionID, stories, prompts, storyNames, messag
                 <HomeButton />
                 <HeaderItem href="/prompt" text="Prompt" />
                 <HeaderItem href="/chapters" text="Chapters" />
+                <Header.Item full />
+                <LogoutButton />
             </Header>
             <Box
             display="flex"

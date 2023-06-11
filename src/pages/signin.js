@@ -120,7 +120,9 @@ export default function SignIn() {
                         <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
                     </Tooltip>
                 </Link>
-            </Header.Item>
+            </Header.Item> 
+            <Header.Item full />           
+            <LogoutButton />
         </Header>
             <PageLayout>
                 <Box>
@@ -176,4 +178,24 @@ export default function SignIn() {
             </PageLayout>
         </div>
     );        
+}
+
+export function LogoutButton() {
+    const router = useRouter();
+    return (
+            <Header.Item>
+                <Button variant='primary'
+                    onClick={async () => {
+                        await fetch('/api/sessionCmds', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        router.push('/');
+                    }}>
+                    Logout
+                </Button>
+            </Header.Item>
+    );
 }

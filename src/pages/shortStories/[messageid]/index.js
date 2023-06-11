@@ -7,6 +7,7 @@ import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios';
 import { HomeButton, HeaderItem } from '../index'
+import { LogoutButton } from '../../signin';
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
     
@@ -17,7 +18,6 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [buttonText, setButtonText] = useState('Copy');
     const [prompt, setPrompt] = useState('');
 
     const handleChange = (ev) => {
@@ -117,7 +117,9 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             <Header>
                 <HomeButton />
                 <HeaderItem href="/chapters" text="Chapters" />
-                <HeaderItem href="/prompt" text="Prompt" />          
+                <HeaderItem href="/prompt" text="Prompt" />
+                <Header.Item full />
+                <LogoutButton />
             </Header>
             <Box
             display="flex"

@@ -9,6 +9,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     else if (req.method == "PUT") {
         await logInUser(req, res);
+    } else if (req.method == "DELETE") {
+        await logOutUser(req, res);
+    }
+}
+
+async function logOutUser(req: NextApiRequest, res: NextApiResponse) {
+    // Assumes the user has a cookie
+    const cookie = new Cookies(req, res);
+    const sessionId = cookie.get('token');
+    console.log(sessionId);
+    try {
+        const result = await query(
+            `DELETE FROM sessions WHERE id = $1`,
+            [sessionId]
+        );
+        res.status(200).send({ response: "success" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: "error" });
     }
 }
 

@@ -6,7 +6,7 @@ import Image from 'next/image'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
-
+import { LogoutButton } from '../signin';
 
 export default function ChapterDisplay({ storyNames, messageIDs, chapters }) {
 
@@ -18,7 +18,9 @@ export default function ChapterDisplay({ storyNames, messageIDs, chapters }) {
             <Header>
                 <HomeButton />
                 <HeaderItem href="/prompt" text="Prompt" />
-                <HeaderItem href="/shortStories" text="Short Stories" />                
+                <HeaderItem href="/shortStories" text="Short Stories" />
+                <Header.Item full />
+                <LogoutButton />
             </Header>
             <Box
             display="flex"

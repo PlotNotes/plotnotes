@@ -7,6 +7,7 @@ import axios from 'axios';
 import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
 import Image from 'next/image'
+import { LogoutButton } from '../../signin';
 
 export default function Edit({ oldMessage, newMessage }) {
 
@@ -69,6 +70,8 @@ const onReject = async (ev) => {
         <HomeButton />
         <HeaderItem href="/chapters" text="Chapters" />
         <HeaderItem href="/prompt" text="Prompt" />
+        <Header.Item full />
+        <LogoutButton />
       </Header>
       <Box
         display="flex"
