@@ -1,30 +1,44 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { query } from "./db";
-import { getUserID } from "./shortStoryCmds";
+import { userLoggedIn } from "./authchecks";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    const userid = await userLoggedIn(req, res);
 
-    if (req.method == "POST") {
-        await addChapter(req, res);
-    } else if (req.method == "GET") {
-        await getChapter(req, res);
-    }
-}
-
-async function getChapter(req: NextApiRequest, res: NextApiResponse) {
-    const sessionid = req.cookies.token;
-
-    if (!sessionid) {
-        res.status(401).send({ response: "no session id" });
+    if (userid == "") {
+        res.status(401).send({ response: "Not logged in" });
         return;
     }
 
-    const userID = await getUserID(sessionid);
+    if (req.method == "POST") {
+        await addChapter(req, res, userid);
+    } else if (req.method == "GET") {
+        await getChapter(req, res, userid);
+    } else if (req.method == "PUT") {
+        await putChapter(req, res, userid);
+    }
+}
+
+async function putChapter(req: NextApiRequest, res: NextApiResponse, userid: string) {
+    
+    // Gets the new story from the request body and inserts it where the messageid is the given messageid
+    const story = req.body.story as string;
+    const messageid = req.body.messageid as string;
+
+    await query(
+        `UPDATE chapters SET message = $1 WHERE messageid = $2 AND userid = $3`,
+        [story, messageid, userid]
+    );
+
+    res.status(200).send({ response: "chapter updated" });
+}
+
+async function getChapter(req: NextApiRequest, res: NextApiResponse, userid: string) {
 
     // Gets all chapters associated with the userID and has the highest chapterid
     const chapterQuery = await query(
         `SELECT message, name, messageid FROM chapters WHERE userid = $1 ORDER BY chapterid DESC LIMIT 1`,
-        [userID]
+        [userid]
     );
 
     if (chapterQuery.rows.length == 0) {
@@ -46,11 +60,10 @@ async function getChapter(req: NextApiRequest, res: NextApiResponse) {
 
 }
 
-async function addChapter(req: NextApiRequest, res: NextApiResponse) {
+async function addChapter(req: NextApiRequest, res: NextApiResponse, userid: string) {
 
     try {
-        const { sessionid, prompt, story, storyName } = req.body;
-        const userID = await getUserID(sessionid);
+        const { prompt, story, storyName } = req.body;
 
         // Since this is called only for the first chapters of a series, find the largest seriesid in the db and add 1 to it
         const seriesIDQuery = await query(
@@ -66,7 +79,7 @@ async function addChapter(req: NextApiRequest, res: NextApiResponse) {
 
         const insertChapterQuery = await query(
             `INSERT INTO chapters (seriesid, chapterid, prompt, message, userid, name) VALUES ($1, $2, $3, $4, $5, $6)`,
-            [seriesID, 1, prompt, story, userID, storyName]
+            [seriesID, 1, prompt, story, userid, storyName]
         );
 
         res.status(200).send({ response: "chapter added" });

@@ -1,41 +1,58 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
-import { getUserID } from '../shortStoryCmds';
-import { continueStory } from '../prompt';
+import { userLoggedIn } from '../authchecks';
+import { continueStory, editExcerpt } from '../prompt';
 
 export default async function storyHistory(req: NextApiRequest, res: NextApiResponse) {
 
-    try {
-        const sessionid = req.cookies.token as string;
-        const userid = await getUserID(sessionid);
+    const userid = await userLoggedIn(req, res);
 
-        if (req.method == "GET") {
-            await getRequest(req, res);
-        } else if (req.method == "POST") {
-            await postRequest(req, res);
-        }
-    } catch (e) {
-        // If the userid cannot be found from the sessionid, route the user back to the login page
-        if (e instanceof TypeError && e.message == "Cannot read properties of undefined (reading 'userid')") {
-            res.status(401).send({ response: "no session id" });
-            return;
-        }
-    }
-}
-
-async function postRequest(req: NextApiRequest, res: NextApiResponse) {
-    console.log("post request");
-    const messageid = req.query.messageid as string;
-    const prompt = req.body.prompt as string;
-    const sessionId = req.cookies.token;
-
-    if (!sessionId) {
-        res.status(401).send({ response: "no session id" });
+    if (userid == "") {
+        res.status(401).send({ response: "Not logged in" });
         return;
     }
 
-    const userId = await getUserID(sessionId);
-    console.log("user id: " + userId);
+    if (req.method == "GET") {
+        await getRequest(req, res, userid);
+    } else if (req.method == "POST") {
+        await postRequest(req, res, userid);
+    } else if (req.method == "PUT") {
+        await putRequest(req, res, userid);
+    }
+}
+
+async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
+    const messageid = req.query.messageid as string;
+    const prompt = req.body.prompt as string;
+
+    // Given the prompt, get the message associated with the messageid and edit the story according to the prompt
+    const messageQuery = await query(
+        `SELECT message FROM shortstories WHERE messageid = $1 AND userid = $2`,
+        [messageid, userid]
+    );
+    
+    if (messageQuery.rows.length == 0) {
+        res.status(200).send({ response: "no chapters" });
+        return;
+    }
+
+    const message = (messageQuery.rows[0] as any).message;
+    
+    const newMessage = await editExcerpt(message, prompt);
+    
+    // Inserts the old and new stories into the edits table
+    await query(
+        `INSERT INTO edits (userid, oldmessage, newmessage, messageid, storytype) VALUES ($1, $2, $3, $4, 'shortstory')`,
+        [userid, message, newMessage, messageid]
+    );
+
+    // Sends the new message information back to the user so they can view it before they submit it
+    res.status(200).send({ response: "success" });
+}
+async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
+    const messageid = req.query.messageid as string;
+    const prompt = req.body.prompt as string;
+
     // Gets the iterationID of the story associated with the given messageID
     const iterationIDQuery = await query(
         `SELECT (iterationid) FROM shortstories WHERE messageid = $1`,
@@ -54,10 +71,10 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
 
         parentID = (parentIDQuery.rows[0] as any).parentid;
     }
-    console.log("parent id: " + parentID);
+    
     // Gets the title of the parent story
     const parentTitle = await getTitle(messageid);
-    console.log("parent title: " + parentTitle);
+    
     // Gets every previous story in this iteration and puts it in a string array
     const storiesQuery = await query(
         `SELECT (message) FROM shortstories WHERE messageid = $1 OR parentid = $1`,
@@ -67,8 +84,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     let stories: string[] = [];
 
     for (let i = 0; i < storiesQuery.rows.length; i++) {
-        stories.push((storiesQuery.rows[i] as any).message);
-        console.log("story: " + (storiesQuery.rows[i] as any).message);
+        stories.push((storiesQuery.rows[i] as any).message);        
     }
 
     const story = await continueStory(prompt, stories);
@@ -76,7 +92,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     // Inserts the new story into the database, adding 1 to the iterationID
     await query(
         `INSERT INTO shortstories (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
-        [iterationID + 1, userId, story, prompt, parentTitle, parentID]
+        [iterationID + 1, userid, story, prompt, parentTitle, parentID]
     );
 
     const messageIDQuery = await query(
@@ -89,16 +105,11 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse) {
     res.status(200).send({ messageID: messageID });
 }
 
-async function getRequest(req: NextApiRequest, res: NextApiResponse) {
+async function getRequest(req: NextApiRequest, res: NextApiResponse, userId: string) {
     const messageid = req.query.messageid as string;
-    const sessionId = req.cookies.token;
-    if (!sessionId) {
-        res.status(401).send({ response: "no session id" });
-        return;
-    }
+
 
     // Checks to see if the messageID belongs to the user requesting it
-    const userId = await getUserID(sessionId);
     const messageIDQuery = await query(
         `SELECT (message) FROM shortstories WHERE userid = $1 AND messageid = $2`,
         [userId, messageid]

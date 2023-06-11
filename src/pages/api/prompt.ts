@@ -1,6 +1,5 @@
-import { ChatCompletionRequestMessageRoleEnum } from "openai";
 import { getOpenAIClient, constructPrompt } from "./openai";
-import { getUserID } from "./shortStoryCmds";
+import { getUserID } from "./authchecks";
 
 async function getStory(req: any) {
   const openai = getOpenAIClient();
@@ -11,8 +10,6 @@ async function getStory(req: any) {
   return completion.data.choices[0].message!.content.trim();
 
 }
-
-
 
 export default async function handler(req: any, res: any) {
 
@@ -40,12 +37,11 @@ export default async function handler(req: any, res: any) {
   } catch (err) {
     // console.log(err);
     if (err instanceof TypeError && err.message == "Cannot read properties of undefined (reading 'userid')") {
-      res.status(401).send({ response: "no session id" });
+      res.status(401).send({ response: "Not logged in" });
       return;
     }
   }
 }
-
 
 
 async function writeChapter(prompt: string): Promise<string> {
@@ -60,8 +56,6 @@ async function writeChapter(prompt: string): Promise<string> {
   return completion.data.choices[0].message!.content.trim();
 }
 
-
-
 async function createStoryName(story: string): Promise<string> {
   console.log("story: " + story);
   const openai = getOpenAIClient();
@@ -74,8 +68,6 @@ async function createStoryName(story: string): Promise<string> {
   console.log("completion: " + completion.data.choices[0].message!.content.trim());
   return completion.data.choices[0].message!.content.trim();
 }
-
-
 
 export async function continueStory(prompt: string, oldStories: string[]): Promise<string> {
   const openai = getOpenAIClient();
@@ -90,15 +82,13 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
   } catch (err) {
     console.log("prompt error: ", err);
   }
-  let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token.`
+  let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token and only include the story.`
 
   const continuePrompt = constructPrompt(content);
 
   const completion = await openai.createChatCompletion(continuePrompt);
   return completion.data.choices[0].message!.content.trim();
 }
-
-
 
 export async function continueChapters(prompt: string, previousChapters: string[]) {
 
@@ -111,21 +101,19 @@ export async function continueChapters(prompt: string, previousChapters: string[
   }
 
   // If the prompt is too long, summarize the prompt
-  if (prompt.length + summaries.length > 3500) {
+  if (prompt.length + summaries.length > 1000) {
     summaries = await summarize(summaries);
   }
   console.log(prompt.length + summaries.length)
   const openai = getOpenAIClient();
 
-  let content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token.`
+  let content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token and include only the story.`
 
   const continuePrompt = constructPrompt(content);
 
   const completion = await openai.createChatCompletion(continuePrompt);
   return completion.data.choices[0].message!.content.trim();
 }
-
-
 
 async function summarize(story: string): Promise<string> {
   const openai = getOpenAIClient();
@@ -139,17 +127,21 @@ async function summarize(story: string): Promise<string> {
   return completion.data.choices[0].message!.content.trim();
 }
 
-export async function editChapter(chapter: string, prompt: string): Promise<string> {
+export async function editExcerpt(chapter: string, prompt: string): Promise<string> {
   const openai = getOpenAIClient();
 
   if (chapter.length + prompt.length > 3500) {
     prompt = await summarize(prompt);
   }
-
-  let content = `Edit the following chapter: '${chapter}' using the prompt: '${prompt}', using every remaining token.`
-  console.log(content);
+  let content = `Edit the following: '${chapter}' using the prompt: '${prompt}', using every remaining token.`
   const editPrompt = constructPrompt(content);
 
   const completion = await openai.createChatCompletion(editPrompt);
-  return completion.data.choices[0].message!.content.trim();
+  let editedChapter = completion.data.choices[0].message!.content.trim();
+
+  if (editedChapter.startsWith(`"`) && editedChapter.endsWith(`"`)) {
+    editedChapter = editedChapter.slice(1, -1);
+  }
+
+  return editedChapter;
 }

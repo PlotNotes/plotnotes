@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Spinner } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
+import Link from 'next/link'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios';
-import { HomeButton, HeaderItem, StoryMap } from '../index'
+import { HomeButton, HeaderItem } from '../index'
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
-
+    
     // Gets the messageID from the URL
     const router = useRouter();
     const { messageid } = router.query;
 
 
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [buttonText, setButtonText] = useState('Copy');
     const [prompt, setPrompt] = useState('');
 
@@ -24,7 +26,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
     const handleSubmit = async (ev) => {
         ev.preventDefault();
-        setIsGenerating(true);
+        setIsSubmitting(true);
         try {
             const response = await fetch(`/api/${messageid}/shortStory`,
                 {
@@ -52,15 +54,15 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
             console.log('messageid Error: ', err);
         }
 
-        setIsGenerating(false);
+        setIsSubmitting(false);
     };
 
-    const ActionButton = ({ buttonText, onClick }) => (
-        <Button variant='primary' onClick={onClick} disabled={isGenerating} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+    const ActionButton = ({ buttonText, onClick, trigger }) => (
+        <Button variant='primary' onClick={onClick} disabled={trigger} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
             <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
                 <Box>{buttonText}</Box>
                     <Box>
-                        <Spinner size="small" sx={{marginLeft: "12px", display: isGenerating ? "block" : "none"}} />
+                        <Spinner size="small" sx={{marginLeft: "12px", display: trigger ? "block" : "none"}} />
                     </Box>
             </Box>
         </Button>
@@ -68,9 +70,10 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
     const handleEdit = async (ev) => {
         ev.preventDefault();
+        setIsEditing(true);
 
         try {
-            const response = await fetch(`/api/${messageid}/chapters`,
+            const response = await fetch(`/api/${messageid}/shortStory`,
                 {
                     method: 'PUT',
                     headers: {
@@ -80,86 +83,36 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                     body: JSON.stringify({ prompt: prompt }),
                 }
             );
-            console.log("response: ", response);
+
             if (response.status === 401) {
-                Router.push(`/signin?from=/shortStories/${messageid}`);
+                Router.push(`/signin?from=/shortStory/${messageid}`);
                 return;
             }
 
             // Redirects the user to a page where they can compare the two stories and choose to accept or deny the new one
             const chapterInfo = await response.json();
 
-            const { oldMessage, newMessage} = chapterInfo;
-            console.log("oldMessage: ", oldMessage);
-            console.log("newMessage: ", newMessage);
-            // Returns a display for the user that shows the old story and the new story side by side, allowing them to
-            // choose which one they want to keep
-            return (
-                    <div>
-                        <Head>
-                            <title>PlotNotes</title>
-                        </Head>
-                        <Header>
-                            <HomeButton />
-                            <HeaderItem href="/chapters" text="Chapters" />
-                            <HeaderItem href="/prompt" text="Prompt" />
-                        </Header>
-                        <StoryBox title="Old Story" message={oldMessage} />
-                        <StoryBox title="New Story" message={newMessage} />
-                        <Box
-                            display="flex"
-                            flexDirection="column"
-                            justifyContent="center"
-                            alignItems="center"
-                            bg="gray.50">
-                                <ActionButton buttonText="Accept" onClick={handleAccept} />
-                                <ActionButton buttonText="Deny" onClick={handleDeny} />
-                        </Box>
-                    </div>
-                );
+            if (chapterInfo.error) {
+                alert(chapterInfo.error);
+                return;
+            }
+            
+            // Redirects the user to the page to comapre the two stories
+            Router.push(`/shortStories/${messageid}/edit`);
 
         } catch(err) {
             console.log('messageid Error: ', err);
         }
+
+        setIsEditing(false);
     };
-
-    const StoryBox = ({ title, message }) => (
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          bg="gray.50">
-          <Heading
-            fontSize={24}
-            fontWeight="bold"
-            color="black"
-            sx={{ paddingTop: 4 }}>
-            {title}
-          </Heading>
-          <Textarea
-            fontWeight="bold"
-            color="black"
-            cols={90}
-            rows={10}
-            value={message}/>
-        </Box>
-      );
-      
-    
-    const handleAccept = async (ev) => {
-        console.log("Accepted");
-    }
-
-    const handleDeny = async (ev) => {
-        console.log("Denied");
-    }
 
     // Displays the story corresponding to the messageID in a text area
     // There should be a copy button on the right side of the textarea
     return (
         <div>
             <Head>
-                <title>PlotNotes</title>
+                <title>PlotNotes - Short Story {title}</title>
             </Head>
             <Header>
                 <HomeButton />
@@ -175,7 +128,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                         {title}
                 </Heading>
                     {stories.map((story, index) => (
-                        <StoryMap key={messageIDs[index]} story={story} index={index} messageIDs={messageIDs} storyNames={title} />
+                        <StoryMap key={messageIDs[index]} story={story} index={index} messageID={messageIDs[index]} sessionID={sessionID} />
                     ))
                     }
                     {/* An area where the user can add onto the existing story underneath all the stories */}
@@ -201,13 +154,107 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                             <Box
                                 display="flex"
                                 flexDirection="row">
-                                <ActionButton buttonText="Submit" onClick={handleSubmit} />
-                                <ActionButton buttonText="Edit" onClick={handleEdit} />
+                                <ActionButton buttonText="Submit" onClick={handleSubmit} trigger={isSubmitting} />
+                                <ActionButton buttonText="Edit" onClick={handleEdit} trigger={isEditing} />
                             </Box>
                     </Box>
             </Box>
         </div>
     )
+}
+
+function StoryMap({story, index, messageID, sessionID}) {
+    const [manualEdit, setManualEdit] = useState(false);
+    const [editText, setEditText] = useState('Edit');
+    const [buttonText, setButtonText] = useState('Copy');
+
+    const copyStory = async (story) => {
+
+        navigator.clipboard.writeText(story);
+
+        setButtonText('Copied!');
+
+        setTimeout(() => {
+            setButtonText('Copy');
+        }, 1000);
+    }
+
+    return (
+        <Box
+            display="flex"
+            alignItems="center">
+                <Link href={`/shortStories/${messageID}`}
+                    onClick={(ev) => {
+                        if (manualEdit) {
+                            ev.preventDefault();
+                        }
+                    }}>
+                    <Box
+                        display="flex"
+                        flexDirection="row"
+                        justifyContent="center"
+                        alignItems="center"
+                        sx={{ paddingBottom: 3 }}>
+                        <Textarea
+                            disabled={!manualEdit}
+                            id={`story-${index}`}
+                            name={`story-${index}`}
+                            defaultValue={story}
+                            aria-label="Story"
+                            cols={90}
+                            rows={20}
+                        />
+                    </Box>
+                </Link>
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center">
+                        <Button
+                            onClick={() => {
+                                copyStory(story);
+                            }}>
+                                {buttonText}
+                        </Button>
+                        <Button
+                            sx={{ marginTop: 4 }}
+                            onClick={() => {
+                                setManualEdit(!manualEdit);
+                                if (!manualEdit) {
+                                    setEditText('Save');
+                                } else {
+                                    setEditText('Edit');
+                                    saveEdit(document.getElementById(`story-${index}`).value, sessionID, messageID);
+                                }
+                            }}>
+                                {editText}
+                        </Button>
+                </Box>
+        </Box>
+    );
+}
+
+async function saveEdit(story, sessionID, messageID) {
+    try {
+        const response = await fetch(`/api/shortStoryCmds`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',   
+                    'Cookie': `token=${sessionID}`,                 
+                },
+                body: JSON.stringify({ story: story, messageid: messageID }),
+            }
+        );
+
+        if (response.status === 401) {
+            Router.push(`/signin?from=/shortStories/${messageID}`);
+            return;
+        }
+
+    } catch(err) {
+        console.log('messageid Error: ', err);
+    }
 }
 
 export async function getServerSideProps(ctx) {

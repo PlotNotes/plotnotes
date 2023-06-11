@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -8,17 +8,17 @@ import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 
 
-export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chapters }) {
+export default function ChapterDisplay({ storyNames, messageIDs, chapters }) {
 
     return (
         <div>
             <Head>
-                <title>PlotNotes</title>
+                <title>PlotNotes - Chapters</title>
             </Head>
             <Header>
                 <HomeButton />
-                <HeaderItem href="/shortStories" text="Short Stories" />
                 <HeaderItem href="/prompt" text="Prompt" />
+                <HeaderItem href="/shortStories" text="Short Stories" />                
             </Header>
             <Box
             display="flex"
@@ -52,7 +52,7 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
             setButtonText('Copy');
         }, 2000);
     }
-
+        
     return (
     <Box 
         display="flex"
@@ -162,7 +162,7 @@ export async function getServerSideProps(ctx) {
         };
     } else if (chapterInfo.response === 'no chapters') {
         return {
-            props: { sessionID, storyNames: [], messageIDs: [], chapters: [] },
+            props: { storyNames: [], messageIDs: [], chapters: [] },
         };
     }
     
@@ -170,5 +170,5 @@ export async function getServerSideProps(ctx) {
     const messageIDs = chapterInfo.messageIDs;
     const chapters = chapterInfo.chapters;
 
-    return { props: { sessionID, storyNames, messageIDs, chapters } };
+    return { props: { storyNames, messageIDs, chapters } };
 }

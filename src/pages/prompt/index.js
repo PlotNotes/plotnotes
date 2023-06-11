@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, PageLayout, Heading, Header, Textarea, Button, ThemeProvider, Spinner, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -129,7 +129,7 @@ export default function Prompt({ sessionID }) {
   return (  
     <div>
         <Head>
-            <title>PlotNotes</title>
+            <title>PlotNotes - Prompt</title>
         </Head>
         <Header>
             <Header.Item>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, PageLayout, Heading, Header, Button, Textarea, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Button, Textarea, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -14,7 +14,7 @@ export default function History({sessionID, stories, prompts, storyNames, messag
     return (
         <div>
             <Head>
-                <title>PlotNotes</title>
+                <title>PlotNotes - Short Stories</title>
             </Head>
             <Header>
                 <HomeButton />
@@ -52,39 +52,6 @@ export const StoryMap = ({ story, index, messageIDs, storyNames }) => {
         setTimeout(() => {
             setButtonText('Copy');
         }, 1000);
-    }
-
-    if (typeof storyNames === 'string') {
-        return (
-            <Box
-                display="flex"
-                alignItems="center">
-                    <Link href={`/shortStories/${messageIDs[index]}`}>
-                        <Box
-                            display="flex"
-                            flexDirection="row"
-                            justifyContent="center"
-                            alignItems="center"
-                            sx={{ paddingBottom: 3 }}>
-                            <Textarea
-                                disabled
-                                id={`story-${index}`}
-                                name={`story-${index}`}
-                                value={story}
-                                aria-label="Story"
-                                cols={90}
-                                rows={20}
-                            />
-                        </Box>
-                    </Link>
-                        <Button
-                        onClick={() => {
-                            copyStory(story);
-                        }}>
-                            {buttonText}
-                    </Button>
-            </Box>
-        );
     }
 
     return (

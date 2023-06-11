@@ -111,7 +111,7 @@ export default function SignIn() {
     return (
         <div>
             <Head>
-            <title>PlotNotes</title>
+            <title>PlotNotes - Signin</title>
         </Head>
         <Header>
             <Header.Item>
