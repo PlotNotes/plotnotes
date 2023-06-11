@@ -3,7 +3,6 @@ import { query } from "./db";
 import { userLoggedIn } from "./authchecks";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
     const userid = await userLoggedIn(req, res);
 
     if (userid == "") {
@@ -15,7 +14,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await addChapter(req, res, userid);
     } else if (req.method == "GET") {
         await getChapter(req, res, userid);
+    } else if (req.method == "PUT") {
+        await putChapter(req, res, userid);
     }
+}
+
+async function putChapter(req: NextApiRequest, res: NextApiResponse, userid: string) {
+    
+    // Gets the new story from the request body and inserts it where the messageid is the given messageid
+    const story = req.body.story as string;
+    const messageid = req.body.messageid as string;
+
+    const insertChapterQuery = await query(
+        `UPDATE chapters SET message = $1 WHERE messageid = $2 AND userid = $3`,
+        [story, messageid, userid]
+    );
+
+    res.status(200).send({ response: "chapter updated" });
 }
 
 async function getChapter(req: NextApiRequest, res: NextApiResponse, userid: string) {

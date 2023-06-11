@@ -52,39 +52,6 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
             setButtonText('Copy');
         }, 2000);
     }
-
-    if (typeof storyNames === 'string') {
-        return (
-            <Box
-                display="flex"
-                alignItems="center">
-                    <Link href={`/shortStories/${messageIDs[index]}`}>
-                        <Box
-                            display="flex"
-                            flexDirection="row"
-                            justifyContent="center"
-                            alignItems="center"
-                            sx={{ paddingBottom: 3 }}>
-                            <Textarea
-                                disabled
-                                id={`story-${index}`}
-                                name={`story-${index}`}
-                                value={chapter.replace('"', '')}
-                                aria-label="Story"
-                                cols={90}
-                                rows={20}
-                            />
-                        </Box>
-                    </Link>
-                        <Button
-                        onClick={() => {
-                            copyStory(chapter);
-                        }}>
-                            {buttonText}
-                    </Button>
-            </Box>
-        );
-    }
         
     return (
     <Box 
