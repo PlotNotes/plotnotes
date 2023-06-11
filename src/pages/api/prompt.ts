@@ -18,16 +18,15 @@ export default async function handler(req: any, res: any) {
     const userid = await getUserID(sessionid);
 
     const createShortStory = req.body.shortStory;
-    console.log("create short story: " + createShortStory);
+
     if (createShortStory) {
       const story = await getStory(req);
       const storyName = await createStoryName(story);
       res.status(200).send({story: story, storyName: storyName});
     } else {
-      console.log("prompt: " + req.body.prompt);
+
       const prompt = req.body.prompt;
       const storyName = await createStoryName(prompt);
-      console.log("story name: " + storyName);
 
       // Writes 1 chapter as a test, TODO: write more chapters
       let chapter = await writeChapter(prompt);
@@ -57,15 +56,15 @@ async function writeChapter(prompt: string): Promise<string> {
 }
 
 async function createStoryName(story: string): Promise<string> {
-  console.log("story: " + story);
+
   const openai = getOpenAIClient();
 
   let content = `Create a name for the story, include nothing except the name of the story: '${story}'.`
 
   const prompt = constructPrompt(content); 
-  console.log("prompt: " + prompt);
+
   const completion = await openai.createChatCompletion(prompt);
-  console.log("completion: " + completion.data.choices[0].message!.content.trim());
+
   return completion.data.choices[0].message!.content.trim();
 }
 
