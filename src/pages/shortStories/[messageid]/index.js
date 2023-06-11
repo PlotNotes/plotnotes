@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Heading, Header, Textarea, Button, Spinner } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Spinner, IconButton } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import Router, { useRouter } from 'next/router'
 import axios from 'axios';
 import { HomeButton, HeaderItem } from '../index'
 import { LogoutButton } from '../../signin';
+import { TrashIcon } from '@primer/octicons-react';
 
 export default function Page({ sessionID, stories, title, messageIDs }) {
     
@@ -231,9 +232,45 @@ function StoryMap({story, index, messageID, sessionID}) {
                             }}>
                                 {editText}
                         </Button>
+                        <IconButton 
+                            icon={TrashIcon}
+                            sx={{ marginTop: 4, marginLeft: 2 }}
+                            onClick={async () => {
+                                deleteStory(messageID, sessionID);
+                            }} />
                 </Box>
         </Box>
     );
+}
+
+async function deleteStory(messageID, sessionID) {
+    try {
+        const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://plotnotes.ai' 
+        : 'http://localhost:3000';
+    
+        const axiosInstance = axios.create({
+        baseURL: baseURL
+        });
+    
+        const response = await axiosInstance.get(`/api/${messageID}/shortStory`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        if (response.status === 401) {
+            Router.push(`/signin?from=/shortStories/${messageID}`);
+            return;
+        }
+
+        Router.push(`/shortStories`);
+    } catch(err) {
+        console.log('messageid Error: ', err);
+    }
 }
 
 async function saveEdit(story, sessionID, messageID) {

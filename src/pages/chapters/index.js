@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Heading, Header, Textarea, Button, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Tooltip, IconButton } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -7,6 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 import { LogoutButton } from '../signin';
+import { TrashIcon } from '@primer/octicons-react'
 
 export default function ChapterDisplay({ storyNames, messageIDs, chapters }) {
 
@@ -87,14 +88,69 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
                         </Box>
                 </Box>
             </Link>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center">
                 <Button
-                onClick={() => {
-                    copyStory(chapter.replace('"', ''));
-                }}>
-                    {buttonText}
-            </Button>
+                    onClick={() => {
+                        copyStory(chapter.replace('"', ''));
+                    }}>
+                        {buttonText}
+                </Button>
+                {/* <IconButton
+                    icon={TrashIcon}
+                    aria-label="Delete"
+                    onClick={() => {
+                        deleteChapter(messageIDs[index]);
+                    }}
+                    sx={{ marginTop: 4 }}/> */}
+            </Box>
     </Box>
     );
+}
+
+export const deleteChapter = async (messageID) => {
+
+    const baseURL = process.env.NODE_ENV === 'production'
+    ? 'https://plotnotes.ai'
+    : 'http://localhost:3000';
+
+    const axiosInstance = axios.create({
+        baseURL: baseURL
+    });
+
+    const response = await axiosInstance.delete(`/api/chapterCmds`,
+        {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: {
+                messageID: messageID
+            }            
+        });
+
+    const chapterInfo = await response.data;
+
+    // If the json has an error saying the messageID does not belong to the user, redirect to the home page
+    if (chapterInfo.error) {
+        return {
+            redirect: {
+                permanent: false,
+                destination: `/`,
+            },
+            props:{ },
+        };
+    } else if (response.status === 401) {
+        return {
+            redirect: {
+                permanent: false,
+                destination: `/signin?from=/chapters`,
+            },
+            props:{ },
+        };
+    }
 }
 
 export const HeaderItem = ({ href, text }) => (

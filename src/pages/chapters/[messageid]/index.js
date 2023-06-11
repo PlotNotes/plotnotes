@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Heading, Header, Textarea, Button, Spinner } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, Spinner, IconButton } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
@@ -8,6 +8,7 @@ import Link from 'next/link'
 import axios from 'axios';
 import { HomeButton, HeaderItem } from '../index'
 import { LogoutButton } from '../../signin';
+import { TrashIcon } from '@primer/octicons-react'
 
 export default function Page({ sessionID, chapters, storyNames, messageIDs }) {    
     const router = useRouter();
@@ -237,9 +238,40 @@ function ChapterMap({ chapter, messageIDs, index, sessionID }) {
                     }}>
                             {editText}
                     </Button>
+                    <IconButton
+                        icon={TrashIcon}
+                        sx={{ marginTop:4 }}
+                        onClick={async () => {
+                            deleteChapter(sessionID, messageIDs[index]);
+                        }} />
                 </Box>
         </Box>
     );
+}
+
+async function deleteChapter(sessionID, messageid) {
+    try {
+
+        const axiosInstance = getAxios();
+
+        const response = await axiosInstance.delete(`/api/${messageid}/chapters`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        if (response.status === 401) {
+            Router.push(`/signin?from=/chapters/${messageid}`);
+            return;
+        }
+
+        Router.push(`/chapters`);
+    } catch(err) {
+        console.log('messageid Error: ', err);
+    }
 }
 
 async function saveEdit(story, sessionID, messageid) {    

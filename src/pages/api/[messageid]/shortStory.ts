@@ -18,7 +18,21 @@ export default async function storyHistory(req: NextApiRequest, res: NextApiResp
         await postRequest(req, res, userid);
     } else if (req.method == "PUT") {
         await putRequest(req, res, userid);
+    } else if (req.method == "DELETE") {
+        await deleteRequest(req, res, userid);
     }
+}
+
+async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
+    const messageid = req.query.messageid as string;
+
+    // Deletes the story from the database
+    await query(
+        `DELETE FROM shortstories WHERE messageid = $1 AND userid = $2`,
+        [messageid, userid]
+    );
+
+    res.status(200).send({ response: "success" });
 }
 
 async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
