@@ -18,7 +18,7 @@ async function logOutUser(req: NextApiRequest, res: NextApiResponse) {
     // Assumes the user has a cookie
     const cookie = new Cookies(req, res);
     const sessionId = cookie.get('token');
-    console.log(sessionId);
+    
     try {
         const result = await query(
             `DELETE FROM sessions WHERE id = $1`,

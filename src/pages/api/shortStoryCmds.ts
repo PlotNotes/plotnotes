@@ -3,7 +3,6 @@ import { query } from './db';
 import { userLoggedIn } from './authchecks';
 
 export default async function insertStory(req: NextApiRequest, res: NextApiResponse) {
-
     const userid = await userLoggedIn(req, res);
 
     if (userid == "") {
@@ -17,7 +16,38 @@ export default async function insertStory(req: NextApiRequest, res: NextApiRespo
         await getRequest(req, res, userid);
     } else if (req.method == "PUT") {
         await putRequest(req, res, userid);
+    } else if (req.method == "DELETE") {
+        await deleteRequest(req, res, userid);
     }
+}
+
+async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
+    const messageid = req.query.messageid as string;
+
+    // Deletes all stories related to the given messageid, starting by getting the parentid
+    const parentIDQuery = await query(
+        `SELECT (parentid) FROM shortstories WHERE messageid = $1`,
+        [messageid]
+    );
+
+    let parentID = (parentIDQuery.rows[0] as any).parentid;
+
+    if (parentID == 0) {
+        parentID = messageid;
+    }
+
+    await query(
+        `DELETE FROM shortstories WHERE parentid = $1`,
+        [parentID]
+    );
+
+    await query(
+        `DELETE FROM shortstories WHERE messageid = $1`,
+        [parentID]
+    );
+
+
+    res.status(200).send({ response: "success" });
 }
 
 async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {

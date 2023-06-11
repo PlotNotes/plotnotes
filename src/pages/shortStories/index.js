@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Heading, Header, Button, Textarea, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Button, Textarea, Tooltip, IconButton } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -7,6 +7,8 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 import { LogoutButton } from '../signin';
+import { TrashIcon } from '@primer/octicons-react'
+import Router from 'next/router'
 
 export default function History({sessionID, stories, prompts, storyNames, messageIDs}) {    
     // Upon loading the page, the user is presented with a list of their previous stories
@@ -88,14 +90,56 @@ export const StoryMap = ({ story, index, messageIDs, storyNames }) => {
                     />
                 </Box>
             </Link>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center">
                 <Button
-                onClick={() => {
-                    copyStory(story);
-                }}>
-                    {buttonText}
-            </Button>
+                    onClick={() => {
+                        copyStory(story);
+                    }}>
+                        {buttonText}
+                </Button>
+                <IconButton
+                    icon={TrashIcon}
+                    aria-label="Delete"
+                    onClick={() => {
+                        deleteStory(messageIDs[index]);
+                    }}
+                    sx={{ marginTop: 4 }}/>
+            </Box>
     </Box>
     );
+}
+
+async function deleteStory(messageID) {
+
+    const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
+    : 'http://localhost:3000';
+
+    const axiosInstance = axios.create({
+    baseURL: baseURL
+    });
+
+    const response = await axiosInstance.delete(`/api/shortStoryCmds`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                params: {
+                    messageid: messageID,
+                }                
+            }
+        );
+
+    if (response.status === 401) {
+        Router.push('/signin?from=/shortStories');
+        return;
+    }
+
+    // Reloads the page
+    Router.reload();
 }
 
 export const HeaderItem = ({ href, text }) => (

@@ -9,7 +9,7 @@ import axios from 'axios';
 import { LogoutButton } from '../signin';
 import { TrashIcon } from '@primer/octicons-react'
 
-export default function ChapterDisplay({ storyNames, messageIDs, chapters }) {
+export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chapters }) {
 
     return (
         <div>
@@ -33,7 +33,7 @@ export default function ChapterDisplay({ storyNames, messageIDs, chapters }) {
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {chapters.map((chapter, index) => (   
-                    <ChapterMap key={messageIDs[index]} chapter={chapter} index={index} messageIDs={messageIDs} storyNames={storyNames} />
+                    <ChapterMap key={messageIDs[index]} chapter={chapter} index={index} messageIDs={messageIDs} storyNames={storyNames} sessionID={sessionID} />
                 ))}
 
             </Box>
@@ -41,7 +41,7 @@ export default function ChapterDisplay({ storyNames, messageIDs, chapters }) {
     );
 }
 
-export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
+export const ChapterMap = ({ chapter, index, messageIDs, storyNames, sessionID }) => {
 
     const [buttonText, setButtonText] = useState('Copy');
 
@@ -98,13 +98,13 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
                     }}>
                         {buttonText}
                 </Button>
-                {/* <IconButton
+                <IconButton
                     icon={TrashIcon}
                     aria-label="Delete"
                     onClick={() => {
-                        deleteChapter(messageIDs[index]);
+                        deleteChapter(messageIDs[index], sessionID);
                     }}
-                    sx={{ marginTop: 4 }}/> */}
+                    sx={{ marginTop: 4 }}/>
             </Box>
     </Box>
     );
@@ -112,45 +112,32 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames }) => {
 
 export const deleteChapter = async (messageID) => {
 
-    const baseURL = process.env.NODE_ENV === 'production'
-    ? 'https://plotnotes.ai'
+    const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
     : 'http://localhost:3000';
 
     const axiosInstance = axios.create({
-        baseURL: baseURL
+    baseURL: baseURL
     });
 
     const response = await axiosInstance.delete(`/api/chapterCmds`,
-        {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                messageID: messageID
-            }            
-        });
-
-    const chapterInfo = await response.data;
-
-    // If the json has an error saying the messageID does not belong to the user, redirect to the home page
-    if (chapterInfo.error) {
-        return {
-            redirect: {
-                permanent: false,
-                destination: `/`,
-            },
-            props:{ },
-        };
-    } else if (response.status === 401) {
-        return {
-            redirect: {
-                permanent: false,
-                destination: `/signin?from=/chapters`,
-            },
-            props:{ },
-        };
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                params: {
+                    messageid: messageID,
+                }                
+            }
+        );
+    
+    if (response.status === 401) {
+        Router.push(`/signin?from=/chapters`);
+        return;
     }
+
+    // Reload the page
+    window.location.reload();
 }
 
 export const HeaderItem = ({ href, text }) => (
@@ -228,5 +215,5 @@ export async function getServerSideProps(ctx) {
     const messageIDs = chapterInfo.messageIDs;
     const chapters = chapterInfo.chapters;
 
-    return { props: { storyNames, messageIDs, chapters } };
+    return { props: { sessionID, storyNames, messageIDs, chapters } };
 }
