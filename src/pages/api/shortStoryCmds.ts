@@ -165,6 +165,7 @@ async function updateMessageIDs(stories: string[]): Promise<string[]> {
 async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
     const { story, storyName, prompt, iterationId } = req.body;
     try {
+
         const storyIdQuery = await query(
             `INSERT INTO shortstories (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
             [iterationId, userid, story, prompt, storyName, 0]
