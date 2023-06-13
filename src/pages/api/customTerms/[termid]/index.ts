@@ -31,7 +31,7 @@ async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: 
         [userid, termid]
     );
 
-    // Deletes all sentences associated with the termid
+    // Deletes all paragraphs associated with the termid
     await query(
         `DELETE FROM usercontext WHERE termid = $1`,
         [termid]
@@ -71,13 +71,13 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: str
         [termid]
     );
 
-    // Breaks the context into individual sentences, and for each sentence, add it to the usercontext table in the database
-    const sentences = context.split(". ");
+    // Breaks the context into individual paragraphs, and for each sentence, add it to the usercontext table in the database
+    const paragraphs = context.split("\n\n");
     
     try {
-        for (let i = 1; i <= sentences.length; i++) {
+        for (let i = 1; i <= paragraphs.length; i++) {
 
-            const sentence = sentences[i - 1];
+            const sentence = paragraphs[i - 1];
             const embedding = await createEmbedding(sentence);
 
             await query(

@@ -18,7 +18,8 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
             <Box
                 display="flex"
                 flexDirection="rows"
-                alignItems="center">
+                alignItems="center"
+                sx={{ paddingBottom:4 }}>
                 <Link href={`/customTerms/${termIds[index]}`}>
                     <Box
                         display="flex"
@@ -93,7 +94,7 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
                 display="flex"
                 flexDirection="column"
                 alignItems="center">
-                    <Heading sx={{ paddingTop:4 }} >Create New Term</Heading>
+                    <Heading sx={{ paddingTop:4 }}>Create New Term</Heading>
                     <Textarea
                         id="term"
                         placeholder="Term"

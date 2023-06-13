@@ -46,8 +46,8 @@ export default function TermContext({ sessionid, context, term }) {
                     <Textarea
                         id="context"
                         defaultValue={context}                        
-                        rows={10}
-                        cols={70}/>
+                        rows={40}
+                        cols={90}/>
                     <Button
                         onClick={() => {
                             saveContext(document.getElementById('context').value);
