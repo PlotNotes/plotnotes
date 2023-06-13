@@ -3,14 +3,37 @@ import { Box, Heading, Header, Textarea, Button, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
-import axios from 'axios';
 import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
-import Image from 'next/image'
 import { LogoutButton } from '../signin';
 import { HomeButton, HeaderItem } from '../chapters';
+import axios from 'axios';
 
-export default function CustomTerms({ sessionID }) {
+export default function CustomTerms({ sessionID, terms, termIds }) {    
+
+    const DisplayTerm = ({term, index}) => {
+
+        return (
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                bg="gray.50"
+                p={3}
+                m={3}
+                borderRadius={2}
+                border={1}
+                borderColor="gray.300"
+                width="100%"
+                maxWidth="400px">
+                <Link href={`/customTerms/${termIds[index]}`}>
+                    <Heading>
+                        {term}
+                    </Heading>
+                </Link>
+            </Box>
+        );
+    }
 
     return (
         <div>
@@ -25,12 +48,20 @@ export default function CustomTerms({ sessionID }) {
                 <Header.Item full />
                 <LogoutButton />
             </Header>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center">
+                    <Heading>Custom Terms</Heading>
+                    { terms.map((term, index) => (
+                        <DisplayTerm key={termIds[index]} term={term} index={index} />
+                    )) }
+            </Box>
         </div>
     );
 }
 
 export async function getServerSideProps(ctx) {
-    const messageID = await ctx.query.messageid;
     const c = cookies(ctx);
     const sess = await loadSession(c.token);
 
@@ -38,14 +69,42 @@ export async function getServerSideProps(ctx) {
       return {
         redirect: {
           permanent: false,
-          destination: `/signin?from=/chapters/${messageID}`,
+          destination: `/signin?from=/customTerms`,
         },
         props:{ },
       };
     }
     let sessionID = sess.rows[0].id; 
 
+    // Gets all terms from the database that belongs to the user using axios
+    const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
+    : 'http://localhost:3000';
+
+    const axiosInstance = axios.create({
+    baseURL: baseURL
+    });
+
+    const response = await axiosInstance.get(`/api/customTerms`,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'Cookie': `token=${c.token}`,
+            },
+        }
+    );
+
+    if (response.status === 401) {
+        Router.push(`/signin?from=/chapters/${messageID}`);
+        return;
+    }
+
+    const data = await response.data;
+
+    const terms = data.terms;
+    const termIds = data.termIds;
+
     return {
-        props: { sessionID },
+        props: { sessionID, terms, termIds },
     };
 }
