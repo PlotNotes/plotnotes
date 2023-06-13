@@ -16,7 +16,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await putRequest(req, res, userid);
     } else if (req.method == "GET") {
         await getRequest(req, res, userid);
+    } else if (req.method == "DELETE") {
+        await deleteRequest(req, res, userid);
     }
+}
+
+async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
+
+    // Deletes the term from the userterms table
+    const termid = req.query.termid as string;
+
+    await query(
+        `DELETE FROM userterms WHERE userid = $1 AND termid = $2`,
+        [userid, termid]
+    );
+
+    // Deletes all sentences associated with the termid
+    await query(
+        `DELETE FROM usercontext WHERE termid = $1`,
+        [termid]
+    );
+
+    res.status(200).send({ response: "success" });
 }
 
 async function getRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {

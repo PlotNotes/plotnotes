@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Heading, Header, Textarea, Button, Tooltip } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, IconButton } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { LogoutButton } from '../signin';
 import { HomeButton, HeaderItem } from '../chapters';
 import axios from 'axios';
+import { TrashIcon } from '@primer/octicons-react'
 
 export default function CustomTerms({ sessionID, terms, termIds, contexts }) {    
 
@@ -16,10 +17,13 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
         return (
             <Box
                 display="flex"
-                flexDirection="column"
+                flexDirection="rows"
                 alignItems="center">
                 <Link href={`/customTerms/${termIds[index]}`}>
-                    <Box>
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center">
                         <Heading>
                             {term}
                         </Heading>
@@ -27,10 +31,39 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
                             value={contexts[index]}
                             disabled
                             rows={10}
-                            cols={70}/>
+                            cols={70}/>                        
                     </Box>
                 </Link>
+                <IconButton
+                    onClick={() => {
+                        axios.delete(`/api/customTerms/${termIds[index]}`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            params: {
+                                token: sessionID,
+                            },
+                        }
+                        );
+                        Router.reload();
+                    }}
+                    icon={TrashIcon} />
             </Box>
+        );
+    }
+
+    const createTerm = async (term, context) => {
+
+        await fetch(`/api/customTerms`, 
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Cookie': `token=${sessionID}`,
+                },
+                body: JSON.stringify({ term: term, context: context }),
+            }
         );
     }
 
@@ -43,7 +76,7 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
                 <HomeButton />
                 <HeaderItem href="/prompt" text="Prompt" />
                 <HeaderItem href="/shortStories" text="Short Stories" />
-                <HeaderItem href="/chapters" text="Chapters" />
+                <HeaderItem href="/chapters" text="Chapters" />                
                 <Header.Item full />
                 <LogoutButton />
             </Header>
@@ -51,10 +84,33 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
                 display="flex"
                 flexDirection="column"
                 alignItems="center">
-                    <Heading>Custom Terms</Heading>
+                    <Heading sx={{ paddingBottom: 5, paddingRight: 4 }} >Custom Terms</Heading>
                     { terms.map((term, index) => (
                         <DisplayTerm key={termIds[index]} term={term} index={index} />
                     )) }
+            </Box>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center">
+                    <Heading sx={{ paddingTop:4 }} >Create New Term</Heading>
+                    <Textarea
+                        id="term"
+                        placeholder="Term"
+                        rows={1}
+                        cols={70}/>
+                    <Textarea
+                        id="context"
+                        placeholder="Context"
+                        rows={10}
+                        cols={70}/>
+                    <Button
+                        onClick={() => {
+                            createTerm(document.getElementById('term').value, document.getElementById('context').value);
+                            Router.reload();
+                        }}>
+                        Create
+                    </Button>
             </Box>
         </div>
     );
