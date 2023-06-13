@@ -9,7 +9,6 @@ export function getOpenAIConfiguration() {
 }
 
 export async function createEmbedding(content: string) {
-  console.log("creating embedding");
   const openai = getOpenAIClient();
   try {
 
@@ -21,7 +20,10 @@ export async function createEmbedding(content: string) {
       input: [content],
     });
     
-    return embedding.data.data[0].embedding;
+    const embeddingArray = embedding.data.data[0].embedding;
+    const embeddingString = "[" + embeddingArray.join(", ") + "]";
+
+    return embeddingString;
   } catch (err) {
     console.log(err);
   }

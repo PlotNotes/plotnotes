@@ -9,27 +9,26 @@ import { LogoutButton } from '../signin';
 import { HomeButton, HeaderItem } from '../chapters';
 import axios from 'axios';
 
-export default function CustomTerms({ sessionID, terms, termIds }) {    
+export default function CustomTerms({ sessionID, terms, termIds, contexts }) {    
 
     const DisplayTerm = ({term, index}) => {
-
+        
         return (
             <Box
                 display="flex"
                 flexDirection="column"
-                alignItems="center"
-                bg="gray.50"
-                p={3}
-                m={3}
-                borderRadius={2}
-                border={1}
-                borderColor="gray.300"
-                width="100%"
-                maxWidth="400px">
+                alignItems="center">
                 <Link href={`/customTerms/${termIds[index]}`}>
-                    <Heading>
-                        {term}
-                    </Heading>
+                    <Box>
+                        <Heading>
+                            {term}
+                        </Heading>
+                        <Textarea
+                            value={contexts[index]}
+                            disabled
+                            rows={10}
+                            cols={70}/>
+                    </Box>
                 </Link>
             </Box>
         );
@@ -102,9 +101,10 @@ export async function getServerSideProps(ctx) {
     const data = await response.data;
 
     const terms = data.terms;
-    const termIds = data.termIds;
+    const termIds = data.termids;
+    const contexts = data.contexts;
 
     return {
-        props: { sessionID, terms, termIds },
+        props: { sessionID, terms, termIds, contexts },
     };
 }

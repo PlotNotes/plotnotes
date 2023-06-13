@@ -9,7 +9,21 @@ import { LogoutButton } from '../../signin';
 import { HomeButton, HeaderItem } from '../../chapters';
 import axios from 'axios';
 
-export default function TermContext() {
+export default function TermContext({ sessionid, context, term }) {
+    const termid = useRouter().query.termid;
+    
+    const saveContext = async (context) => {
+        await fetch(`/api/customTerms/${termid}`, 
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Cookie': `token=${sessionid}`,
+                },
+                body: JSON.stringify({ context: context }),
+            }
+        );
+    }
 
     return (
         <div>
@@ -24,6 +38,23 @@ export default function TermContext() {
                 <Header.Item full />
                 <LogoutButton />
             </Header>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center">
+                    <Heading>{term}</Heading>
+                    <Textarea
+                        id="context"
+                        defaultValue={context}                        
+                        rows={10}
+                        cols={70}/>
+                    <Button
+                        onClick={() => {
+                            saveContext(document.getElementById('context').value);
+                        }}>
+                        Save
+                    </Button>
+            </Box>
         </div>
 
     )
@@ -43,9 +74,31 @@ export async function getServerSideProps(ctx) {
         props:{ },
       };
     }
-    // let sessionID = sess.rows[0].id; 
+
+    let sessionid = sess.rows[0].id; 
+    
+    const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
+    : 'http://localhost:3000';
+
+    const axiosInstance = axios.create({
+        baseURL: baseURL
+    });
+
+    const response = await axiosInstance.get(`/api/customTerms/${termid}`,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'Cookie': `token=${c.token}`,
+            },
+        }
+    );
+    
+    const data = await response.data;
+    const context = data.context;
+    const term = data.term;
 
     return {
-        props: {  },
+        props: { sessionid, context, term },
     };
 }
