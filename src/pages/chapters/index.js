@@ -111,15 +111,18 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames, sessionID }
     );
 }
 
-export const deleteChapter = async (messageID) => {
-
+export const deleteChapter = async (messageID, sessionID) => {
+    console.log("messageID:", messageID);
+    console.log("sessionID:", sessionID);
+    
     const response = await fetch(`/api/chapterCmds`,
             {
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Cookie': `token=${sessionID}`,
-                },
-                body: JSON.stringify({ messageid: messageID }),               
+                    'messageid': messageID,
+                },                               
             }
         );
     

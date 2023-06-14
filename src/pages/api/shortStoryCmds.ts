@@ -22,7 +22,7 @@ export default async function insertStory(req: NextApiRequest, res: NextApiRespo
 }
 
 async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
-    const messageid = req.query.messageid as string;
+    const messageid = req.headers.messageid as string;
 
     // Deletes all stories related to the given messageid, starting by getting the parentid
     const parentIDQuery = await query(

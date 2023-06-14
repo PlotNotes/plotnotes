@@ -37,7 +37,7 @@ export default function History({sessionID, stories, prompts, storyNames, messag
                 {/* There should be a copy button on the right side of each textarea, and when the textarea */}
                 {/* is clicked on, it will take the user to a page specifically about that story */}
                 {stories.map((story, index) => (
-                    <StoryMap key={messageIDs[index]} story={story} index={index} messageIDs={messageIDs} storyNames={storyNames} />
+                    <StoryMap key={messageIDs[index]} story={story} index={index} messageIDs={messageIDs} storyNames={storyNames} sessionID={sessionID} />
                 ))}
 
             </Box>
@@ -45,7 +45,7 @@ export default function History({sessionID, stories, prompts, storyNames, messag
     );
 }
 
-export const StoryMap = ({ story, index, messageIDs, storyNames }) => {
+export const StoryMap = ({ story, index, messageIDs, storyNames, sessionID }) => {
 
     const [buttonText, setButtonText] = useState('Copy');
 
@@ -105,7 +105,7 @@ export const StoryMap = ({ story, index, messageIDs, storyNames }) => {
                     icon={TrashIcon}
                     aria-label="Delete"
                     onClick={() => {
-                        deleteStory(messageIDs[index]);
+                        deleteStory(messageIDs[index], sessionID);
                     }}
                     sx={{ marginTop: 4 }}/>
             </Box>
@@ -113,7 +113,7 @@ export const StoryMap = ({ story, index, messageIDs, storyNames }) => {
     );
 }
 
-async function deleteStory(messageID) {
+async function deleteStory(messageID, sessionID) {
 
     const response = await fetch(`/api/shortStoryCmds`,
             {
@@ -121,8 +121,8 @@ async function deleteStory(messageID) {
                 headers: {
                     'Content-Type': 'application/json',
                     'Cookie': `token=${sessionID}`,
+                    'messageid': messageID,
                 },
-                body: JSON.stringify({ messageid: messageID }),
             }
         );
 

@@ -268,7 +268,13 @@ async function deleteChapter(sessionID, messageid) {
             return;
         }
 
-        const data = await response.data;
+        const data = await response.json();
+
+        if (data.response === 'no chapters') {
+            Router.push(`/chapters`);
+            return;
+        }
+
         const newMessageID = data.messageid;
 
         Router.push(`/chapters/${newMessageID}`);

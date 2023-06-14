@@ -262,7 +262,14 @@ async function deleteStory(messageID, sessionID) {
             return;
         }
 
-        Router.push(`/shortStories`);
+        const data = await response.json();
+
+        if (data.response === 'no stories') {
+            Router.push(`/shortStories`);
+            return;
+        }
+
+        Router.push(`/shortStories/${data.messageid}`);
     } catch(err) {
         console.log('messageid Error: ', err);
     }

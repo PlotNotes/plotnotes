@@ -32,7 +32,20 @@ async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: 
         [messageid, userid]
     );
 
-    res.status(200).send({ response: "success" });
+    // Gets the most recent story in the series
+    const storyQuery = await query(
+        `SELECT messageid FROM shortstories WHERE parentid = $1 ORDER BY iterationid DESC LIMIT 1`,
+        [messageid]
+    );
+
+    if (storyQuery.rows.length == 0) {
+        res.status(200).send({ response: "no stories" });
+        return;
+    }
+
+    const newMessageID = (storyQuery.rows[0] as any).messageid;
+
+    res.status(200).send({ messageid: newMessageID });
 }
 
 async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {

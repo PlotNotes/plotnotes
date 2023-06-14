@@ -47,6 +47,11 @@ async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: 
         [seriesID]
     );
 
+    if (chapterQuery.rows.length == 0) {
+        res.status(200).send({ response: "no chapters" });
+        return;
+    }
+
     const newMessageID = (chapterQuery.rows[0] as any).messageid;
 
     res.status(200).send({ messageid: newMessageID });
