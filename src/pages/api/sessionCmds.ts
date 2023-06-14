@@ -20,7 +20,7 @@ async function logOutUser(req: NextApiRequest, res: NextApiResponse) {
     const sessionId = cookie.get('token');
     
     try {
-        const result = await query(
+        await query(
             `DELETE FROM sessions WHERE id = $1`,
             [sessionId]
         );
@@ -132,7 +132,7 @@ async function passwordMatches(userId: number, password: string): Promise<boolea
 
 async function signUp(username: string, password: string): Promise<string> {
 
-    const addUser = await query(
+    await query(
         `INSERT INTO users (name, usedGoogle) VALUES ($1, $2);`,
         [username, false]
     );
@@ -142,12 +142,12 @@ async function signUp(username: string, password: string): Promise<string> {
         [username]
     );
     const id = (idQuery.rows[0] as any).id;
-    const addPassword = await query(
+    await query(
         `INSERT INTO userpasswords (id, password) VALUES ($1, $2);`,
         [id, password]
     );
     
-    await fetch(`https://hooks.zapier.com/hooks/catch/15654235/3hr7qae/`, {
+    await fetch(`${process.env.ZAPIER_WEBHOOK_URL}`, {
         method: 'POST',
         body: JSON.stringify({
             username,
@@ -180,7 +180,7 @@ async function signInWithGoogle(username: string): Promise<string> {
         return sessionId;
     }
 
-    const user = await query(
+    await query(
         `INSERT INTO users (name, usedGoogle) VALUES ($1, $2);`,
         [username, true]
     );
@@ -192,7 +192,7 @@ async function signInWithGoogle(username: string): Promise<string> {
 
     const userID = (userIDQuery.rows[0] as any).id;
     
-    await fetch(`https://hooks.zapier.com/hooks/catch/15654235/3hr7qae/`, {
+    await fetch(`${process.env.ZAPIER_WEBHOOK_URL}`, {
         method: 'POST',
         body: JSON.stringify({
             username,
@@ -213,7 +213,7 @@ export async function createSession(id: string): Promise<string> {
         // sets the expiration date to be an hour from now
         expireDate.setHours(expireDate.getHours() + 1);
 
-        const session = await query(
+        await query(
             `INSERT INTO sessions (id, userid, expiredate) VALUES ($1, $2, $3);`,
             [sessionId, id, expireDate]);
         return sessionId;
@@ -239,7 +239,7 @@ export async function getSession(sessionId: string) {
 export async function deleteExpiredSessions() {
     const currentDate = new Date();
     try {
-        const result = await query(
+        await query(
             `DELETE FROM sessions WHERE expireDate < $1`,
             [currentDate]
         );
