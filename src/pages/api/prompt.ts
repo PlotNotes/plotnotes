@@ -147,7 +147,7 @@ async function createStoryName(story: string): Promise<string> {
 
   const openai = getOpenAIClient();
 
-  let content = `Create a name for the story, include nothing except the name of the story: '${story}'.`
+  let content = `Create a name for the story, include nothing except the name of the story: '${story}'. Do not use quotes.`
 
   const prompt = constructPrompt(content); 
 
@@ -157,6 +157,7 @@ async function createStoryName(story: string): Promise<string> {
 }
 
 export async function continueStory(prompt: string, oldStories: string[], userid: string): Promise<string> {
+  console.log("prompt: ", prompt);
   const openai = getOpenAIClient();
 
   let summary = "";
@@ -169,24 +170,25 @@ export async function continueStory(prompt: string, oldStories: string[], userid
   } catch (err) {
     console.log("prompt error: ", err);
   }
-
+  console.log("summary: ", summary);
   let context = await getContext(prompt, userid);
-
+  console.log("context: ", context);
   const tokens = tokenize(prompt + " " + summary + " " + context);
-
+  console.log("tokens: ", tokens);
   if (tokens > 1000) {
     summary = await summarize(summary);
     context = await summarize(context);
   }
-
+  console.log("summary: ", summary);
+  console.log("context: ", context);
   let content = ``;
 
   if (context != "") {
-    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', here is some relevant context '${context}', using every remaining token and include only the story.`
+    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', here is some relevant context '${context}', using every remaining token and include only the story. Do not include the prompt in the story.`
   } else {
-    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token and include only the story.`
+    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token and include only the story. Do not include the prompt in the story.`
   }
-
+  console.log("content: ", content);
   const continuePrompt = constructPrompt(content);
 
   const completion = await openai.createChatCompletion(continuePrompt);
@@ -223,9 +225,9 @@ export async function continueChapters(prompt: string, previousChapters: string[
   let content = ``;
 
   if (context != "") {
-    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', here is some relevant context '${context}', using every remaining token and include only the story.`
+    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', here is some relevant context '${context}', using every remaining token and include only the story. Do not include the prompt in the story.`
   } else {
-    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token and include only the story.`
+    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token and include only the story. Do not include the prompt in the story.`
   }
 
   const continuePrompt = constructPrompt(content);
