@@ -147,7 +147,7 @@ async function signUp(username: string, password: string): Promise<string> {
         [id, password]
     );
     
-    await fetch(`https://hooks.zapier.com/hooks/catch/15654235/3hr0wy1/`, {
+    await fetch(`https://hooks.zapier.com/hooks/catch/15654235/3hr7qae/`, {
         method: 'POST',
         body: JSON.stringify({
             username,
@@ -192,7 +192,7 @@ async function signInWithGoogle(username: string): Promise<string> {
 
     const userID = (userIDQuery.rows[0] as any).id;
     
-    await fetch(`https://hooks.zapier.com/hooks/catch/15654235/3hr0wy1/`, {
+    await fetch(`https://hooks.zapier.com/hooks/catch/15654235/3hr7qae/`, {
         method: 'POST',
         body: JSON.stringify({
             username,
