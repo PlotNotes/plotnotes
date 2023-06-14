@@ -101,7 +101,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: st
         stories.push((storiesQuery.rows[i] as any).message);        
     }
 
-    const story = await continueStory(prompt, stories);
+    const story = await continueStory(prompt, stories, userid);
 
     // Inserts the new story into the database, adding 1 to the iterationID
     await query(

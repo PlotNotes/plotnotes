@@ -23,6 +23,7 @@ export default function History({sessionID, stories, prompts, storyNames, messag
                 <HomeButton />
                 <HeaderItem href="/prompt" text="Prompt" />
                 <HeaderItem href="/chapters" text="Chapters" />
+                <HeaderItem href="/customTerms" text="Custom Terms" />
                 <Header.Item full />
                 <LogoutButton />
             </Header>

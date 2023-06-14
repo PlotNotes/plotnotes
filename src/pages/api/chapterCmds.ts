@@ -56,7 +56,7 @@ async function getChapter(req: NextApiRequest, res: NextApiResponse, userid: str
 
     // Gets all chapters associated with the userID and has the highest chapterid
     const chapterQuery = await query(
-        `SELECT message, name, messageid FROM chapters WHERE userid = $1 ORDER BY chapterid DESC LIMIT 1`,
+        `SELECT message, name, messageid FROM chapters WHERE userid = $1`,
         [userid]
     );
 

@@ -7,6 +7,7 @@ import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import { LogoutButton } from '../signin';
+import { HomeButton, HeaderItem } from '../chapters';
 
 export default function Prompt({ sessionID }) {
   const [prompt, setPrompt] = useState('');
@@ -132,27 +133,10 @@ export default function Prompt({ sessionID }) {
             <title>PlotNotes - Prompt</title>
         </Head>
         <Header>
-            <Header.Item>
-                <Link href="/">
-                    <Tooltip aria-label="Home" direction="s" noDelay >
-                        <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
-                    </Tooltip>
-                </Link>
-            </Header.Item>
-            <Header.Item>
-                <Button variant='primary'>
-                    <Link href="/shortStories">
-                        Short Stories
-                    </Link>
-                </Button>
-            </Header.Item>
-            <Header.Item>
-                <Button variant='primary'> 
-                    <Link href="/chapters">
-                        Chapters
-                    </Link>
-                </Button>
-            </Header.Item>
+            <HomeButton />
+            <HeaderItem href="/shortStories" text="Short Stories" />
+            <HeaderItem href="/chapters" text="Chapters" />
+            <HeaderItem href="/customTerms" text="Custom Terms" />
             <Header.Item full />
             <LogoutButton />
         </Header>
