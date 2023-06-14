@@ -153,7 +153,8 @@ export default function Prompt({ sessionID }) {
                 justifyContent="flex-start"
                 mt={{ base: 4, md: 4 }}>
 
-                <Box bg="gray.2" p={4} borderRadius={2} mr={{ md: 6 }} >
+                <Box 
+                sx={{ marginTop:6, marginRight:6 }} >
                     <Heading fontSize={6} textAlign="center">
                         Write a story about....
                     </Heading>                
