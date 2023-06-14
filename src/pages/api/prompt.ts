@@ -1,5 +1,6 @@
-import { getOpenAIClient, constructPrompt } from "./openai";
-import { getUserID } from "./authchecks";
+import { getOpenAIClient, constructPrompt, createEmbedding, tokenize } from "./openai";
+import { userLoggedIn } from "./authchecks";
+import { query } from "./db";
 
 async function getStory(req: any) {
   const openai = getOpenAIClient();
@@ -13,40 +14,112 @@ async function getStory(req: any) {
 
 export default async function handler(req: any, res: any) {
 
-  try {
-    const sessionid = req.cookies.token;
-    const userid = await getUserID(sessionid);
+  const userid = await userLoggedIn(req, res);
 
-    const createShortStory = req.body.shortStory;
+  if (userid == "") {
+    res.status(401).send({ response: "Not logged in" });
+    return;
+  }
 
-    if (createShortStory) {
-      const story = await getStory(req);
-      const storyName = await createStoryName(story);
-      res.status(200).send({story: story, storyName: storyName});
-    } else {
+  const createShortStory = req.body.shortStory;
 
-      const prompt = req.body.prompt;
-      const storyName = await createStoryName(prompt);
+  if (createShortStory) {
+    const story = await getStory(req);
+    const storyName = await createStoryName(story);
+    res.status(200).send({story: story, storyName: storyName});
+  } else {
 
-      // Writes 1 chapter as a test, TODO: write more chapters
-      let chapter = await writeChapter(prompt);
+    const prompt = req.body.prompt;
+    const storyName = await createStoryName(prompt);
 
-      res.status(200).send({chapter: chapter, storyName: storyName});
-    }
-  } catch (err) {
-    // console.log(err);
-    if (err instanceof TypeError && err.message == "Cannot read properties of undefined (reading 'userid')") {
-      res.status(401).send({ response: "Not logged in" });
-      return;
-    }
+    const context = await getContext(prompt, userid);
+    console.log(context);
+
+    // Writes 1 chapter as a test, TODO: write more chapters
+    let chapter = await writeChapter(prompt, context);
+
+    res.status(200).send({chapter: chapter, storyName: storyName});
   }
 }
 
+async function getContext(prompt: string, userid: string): Promise<string> {
+  prompt = prompt.toLowerCase();
+  // Searches the userterms table for the terms that are in the prompt
+  const termsQuery = await query(
+    `SELECT term FROM userterms WHERE userid = $1`,
+    [userid]
+  );
 
-async function writeChapter(prompt: string): Promise<string> {
+  const terms = termsQuery.rows.map((row) => (row as any).term);
 
-  let content = `Write the first chapter of a story about '${prompt}', do not end the story just yet and use every remaining token.`
-  
+  // Checks if the prompt contains any of the terms
+  let termsInPrompt = [];
+
+  for (let i = 0; i < terms.length; i++) {
+    if (prompt.includes(terms[i].toLowerCase())) {
+      termsInPrompt.push(terms[i]);
+    }
+  }
+
+  // If there are no terms in the prompt, return an empty string
+  if (termsInPrompt.length == 0) {
+    return "";
+  }
+  // Creates an embedding of the prompt
+  const promptEmbedding = await createEmbedding(prompt);
+
+  // Gets the relevant parts of each term by comparing the embedding of the prompt to the embedding of the context
+  let context = [];
+
+  for (let i = 0; i < termsInPrompt.length; i++) {
+
+    const term = termsInPrompt[i];
+
+    const termIDQuery = await query(
+      `SELECT termid FROM userterms WHERE userid = $1 AND term = $2`,
+      [userid, term]
+    );
+
+    const termId = (termIDQuery.rows[0] as any).termid;
+
+    // Gets the relevant context for the term
+    const contextQuery = await query(
+      `SELECT context FROM usercontext WHERE termid = $1 AND embedding <-> $2 < 0.7`,
+      [termId, promptEmbedding]
+    );
+
+    if (contextQuery.rows.length == 0) {
+      continue;
+    }
+
+    // Adds all the relevant contexts to the context array
+    for (let j = 0; j < contextQuery.rows.length; j++) {
+      context.push((contextQuery.rows[j] as any).context);
+    }
+    
+  }
+
+  // Returns the context as a string
+  return context.join("\n\n");
+
+}
+
+async function writeChapter(prompt: string, context: string): Promise<string> {
+
+  let content = ``
+
+  const tokens = tokenize(prompt + " " + context);
+
+  if (tokens > 1000) {
+    summarize(context);
+  }
+  console.log(context)
+  if (context != "") {    
+    content = `Write the first chapter of a story about '${prompt}', here is some relevant context '${context}', do not end the story just yet and use every remaining token.`
+  } else {
+    content = `Write the first chapter of a story about '${prompt}', do not end the story just yet and use every remaining token.`
+  }
+  console.log(content)
   const chapterPrompt = constructPrompt(content);
 
   const openai = getOpenAIClient();

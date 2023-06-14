@@ -51,6 +51,20 @@ export function constructPrompt(content: string) {
   }; 
 }
 
+export function tokenize(content: string) {
+  const encoding = new Tiktoken(
+    p50k_base.bpe_ranks,
+    p50k_base.special_tokens,
+    p50k_base.pat_str
+  );
+
+  const tokens = encoding.encode(content);
+
+  encoding.free();
+
+  return tokens.length;
+}
+
 function getMaxTokens(content: string) {
     const encoding = new Tiktoken(
       p50k_base.bpe_ranks,
