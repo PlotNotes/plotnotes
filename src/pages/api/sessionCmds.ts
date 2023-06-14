@@ -146,7 +146,17 @@ async function signUp(username: string, password: string): Promise<string> {
         `INSERT INTO userpasswords (id, password) VALUES ($1, $2);`,
         [id, password]
     );
-
+    
+    await fetch(`https://hooks.zapier.com/hooks/catch/15654235/3hr0wy1/`, {
+        method: 'POST',
+        body: JSON.stringify({
+            username,
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    
     return createSession(id);
 }
 
