@@ -191,6 +191,16 @@ async function signInWithGoogle(username: string): Promise<string> {
     );
 
     const userID = (userIDQuery.rows[0] as any).id;
+    
+    await fetch(`https://hooks.zapier.com/hooks/catch/15654235/3hr0wy1/`, {
+        method: 'POST',
+        body: JSON.stringify({
+            username,
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 
     const sessionId = await createSession(userID);
     return sessionId;
