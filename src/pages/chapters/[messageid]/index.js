@@ -171,7 +171,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
 
 function ChapterMap({ chapter, messageIDs, index, sessionID }) {
 
-    const [editText, setEditText] = useState("Edit");
+    const [editText, setEditText] = useState("Manual Edit");
     const [buttonText, setButtonText] = useState('Copy');
     const [manualEdit, setManualEdit] = useState(false);
 
@@ -232,7 +232,7 @@ function ChapterMap({ chapter, messageIDs, index, sessionID }) {
                         if (!manualEdit) {
                             setEditText("Save");
                         } else {
-                            setEditText("Edit");
+                            setEditText("Manual Edit");
                             saveEdit(document.getElementById(`story-${index}`).value, sessionID, messageIDs[index]);
                         }
                     }}>
