@@ -1,11 +1,43 @@
 import Image from 'next/image'
 import Head from 'next/head'
-import { Inter } from 'next/font/google'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 
-const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+
+  const router = useRouter()
+  const loggedIn = router.query.loggedIn
+  console.log(loggedIn)
+  const loginButton = () => {
+    // If loggedIn is null or false, then display the login button
+    if (loggedIn == null || loggedIn == "false") {
+      return(
+        <button 
+        className="absolute top-0 right-0 mt-4 mr-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        onClick={() => Router.push('/signin')}>
+        Login
+      </button>
+      );
+    } else {
+      // If loggedIn is true, then display the logout button
+      return(
+        <button 
+        className="absolute top-0 right-0 mt-4 mr-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        onClick={async () => {
+          await fetch('/api/sessionCmds', {
+              method: 'DELETE',
+              headers: {
+                  'Content-Type': 'application/json'
+              }
+          });
+          Router.push('/');
+      }}>
+        Logout
+      </button>
+      );
+    }
+  }
+
   // Returns the home page of PlotNotes with a welcome message and displaying the logo above it
   // Adds a login button that redirects to the login page, located on the top right of the page
   return (
@@ -13,12 +45,7 @@ export default function Home() {
       <Head>
         <title>PlotNotes - Home</title>
       </Head>
-      <button 
-        className="absolute top-0 right-0 mt-4 mr-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        onClick={() => Router.push('/signin')}
-      >
-        Login
-      </button>
+      {loginButton()}
       <Image
         src="/images/PlotNotesLogo.png"
         alt="PlotNotes Logo"

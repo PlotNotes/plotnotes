@@ -56,7 +56,7 @@ export default function SignIn() {
         if (router.query.from !== undefined) 
             router.push(router.query.from) 
         else
-            router.push('/')
+            router.push('/?loggedIn=true')
     };
 
     const addGoogleUser = async (username) => {
@@ -72,7 +72,7 @@ export default function SignIn() {
         if (router.query.from !== undefined)
             router.push(router.query.from)
         else 
-            router.push('/')
+            router.push('/?loggedIn=true')
     };
 
     const logUserIn = async (ev) => {
@@ -105,7 +105,7 @@ export default function SignIn() {
         if (router.query.from !== undefined)
             router.push(router.query.from)
         else
-            router.push('/')
+            router.push('/?loggedIn=true')
     };
 
     return (
@@ -192,7 +192,7 @@ export function LogoutButton() {
                                 'Content-Type': 'application/json'
                             }
                         });
-                        router.push('/');
+                        router.push('/?loggedIn=false');
                     }}>
                     Logout
                 </Button>

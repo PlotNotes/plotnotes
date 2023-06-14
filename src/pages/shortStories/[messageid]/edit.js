@@ -132,7 +132,7 @@ export const HeaderItem = ({ href, text }) => (
 
 export const HomeButton = () => (
   <Header.Item>
-      <Link href="/">
+      <Link href="/?loggedIn=true">
           <Tooltip aria-label="Home" direction="s" noDelay >
               <Image src="/images/PlotNotesIcon.png" alt="PlotNotes" height={70} width={90} />
           </Tooltip>

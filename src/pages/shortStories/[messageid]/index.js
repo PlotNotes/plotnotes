@@ -164,7 +164,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
 
 function StoryMap({story, index, messageID, sessionID}) {
     const [manualEdit, setManualEdit] = useState(false);
-    const [editText, setEditText] = useState('Edit');
+    const [editText, setEditText] = useState('Manual Edit');
     const [buttonText, setButtonText] = useState('Copy');
 
     const copyStory = async (story) => {
@@ -223,7 +223,7 @@ function StoryMap({story, index, messageID, sessionID}) {
                                 if (!manualEdit) {
                                     setEditText('Save');
                                 } else {
-                                    setEditText('Edit');
+                                    setEditText('Manual Edit');
                                     saveEdit(document.getElementById(`story-${index}`).value, sessionID, messageID);
                                 }
                             }}>
