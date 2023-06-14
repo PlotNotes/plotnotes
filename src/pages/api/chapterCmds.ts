@@ -54,26 +54,39 @@ async function putChapter(req: NextApiRequest, res: NextApiResponse, userid: str
 
 async function getChapter(req: NextApiRequest, res: NextApiResponse, userid: string) {
 
-    // Gets all chapters associated with the userID and has the highest chapterid
+    // Gets all chapters associated with the userID and is the first chapter in the series
     const chapterQuery = await query(
-        `SELECT message, name, messageid FROM chapters WHERE userid = $1`,
-        [userid]
+        `SELECT seriesid FROM chapters WHERE userid = $1 AND chapterid = $2`,
+        [userid, 1]
     );
 
     if (chapterQuery.rows.length == 0) {
         res.status(200).send({ response: "no chapters" });
         return;
     }
-    // Returns the chapters, story names, and messageIDs as arrays
+
+    // Now it gets the most recent chapter for each story that was received from the previous query
+    // This is done by getting the seriesid of each story and getting the most recent chapter with that seriesid
+    const seriesIDs: string[] = [];
+
+    for (let i = 0; i < chapterQuery.rows.length; i++) {
+        seriesIDs.push((chapterQuery.rows[i] as any).seriesid);
+    }
+
     const chapters: string[] = [];
     const storyNames: string[] = [];
     const messageIDs: string[] = [];
 
-    for (let i = 0; i < chapterQuery.rows.length; i++) {
-        chapters.push((chapterQuery.rows[i] as any).message);
-        storyNames.push((chapterQuery.rows[i] as any).name);
-        messageIDs.push((chapterQuery.rows[i] as any).messageid);
-    }
+    for (let i = 0; i < seriesIDs.length; i++) {
+        const chapterQuery = await query(
+            `SELECT message, name, messageid FROM chapters WHERE seriesid = $1 ORDER BY chapterid DESC LIMIT 1`,
+            [seriesIDs[i]]
+        );
+
+        chapters.push((chapterQuery.rows[0] as any).message);
+        storyNames.push((chapterQuery.rows[0] as any).name);
+        messageIDs.push((chapterQuery.rows[0] as any).messageid);
+    }    
 
     res.status(200).send({ chapters: chapters, storyNames: storyNames, messageIDs: messageIDs });
 
