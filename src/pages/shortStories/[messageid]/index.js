@@ -119,6 +119,7 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                 <HomeButton />
                 <HeaderItem href="/chapters" text="Chapters" />
                 <HeaderItem href="/prompt" text="Prompt" />
+                <HeaderItem href="/customTerms" text="Custom Terms" />
                 <Header.Item full />
                 <LogoutButton />
             </Header>

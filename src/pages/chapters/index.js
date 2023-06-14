@@ -20,6 +20,7 @@ export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chap
                 <HomeButton />
                 <HeaderItem href="/prompt" text="Prompt" />
                 <HeaderItem href="/shortStories" text="Short Stories" />
+                <HeaderItem href="/customTerms" text="Custom Terms" />
                 <Header.Item full />
                 <LogoutButton />
             </Header>
