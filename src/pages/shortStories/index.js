@@ -115,22 +115,14 @@ export const StoryMap = ({ story, index, messageIDs, storyNames }) => {
 
 async function deleteStory(messageID) {
 
-    const baseURL = process.env.NODE_ENV === 'production' 
-    ? 'https://plotnotes.ai' 
-    : 'http://localhost:3000';
-
-    const axiosInstance = axios.create({
-    baseURL: baseURL
-    });
-
-    const response = await axiosInstance.delete(`/api/shortStoryCmds`,
+    const response = await fetch(`/api/shortStoryCmds`,
             {
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Cookie': `token=${sessionID}`,
                 },
-                params: {
-                    messageid: messageID,
-                }                
+                body: JSON.stringify({ messageid: messageID }),
             }
         );
 

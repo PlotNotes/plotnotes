@@ -113,22 +113,13 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames, sessionID }
 
 export const deleteChapter = async (messageID) => {
 
-    const baseURL = process.env.NODE_ENV === 'production' 
-    ? 'https://plotnotes.ai' 
-    : 'http://localhost:3000';
-
-    const axiosInstance = axios.create({
-    baseURL: baseURL
-    });
-
-    const response = await axiosInstance.delete(`/api/chapterCmds`,
+    const response = await fetch(`/api/chapterCmds`,
             {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Cookie': `token=${sessionID}`,
                 },
-                params: {
-                    messageid: messageID,
-                }                
+                body: JSON.stringify({ messageid: messageID }),               
             }
         );
     

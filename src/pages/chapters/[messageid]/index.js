@@ -253,16 +253,12 @@ function ChapterMap({ chapter, messageIDs, index, sessionID }) {
 async function deleteChapter(sessionID, messageid) {
     try {
 
-        const axiosInstance = getAxios();
-
-        const response = await axiosInstance.delete(`/api/${messageid}/chapters`,
+        const response = await fetch(`/api/${messageid}/chapters`,
             {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                params: {
-                    token: sessionID,
+                    'Cookie': `token=${sessionID}`,
                 },
             }
         );
