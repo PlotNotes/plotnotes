@@ -28,13 +28,29 @@ export default async function chapterHistory(req: NextApiRequest, res: NextApiRe
 async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
     const messageid = req.query.messageid as string;
 
+    // Gets the seriesid of the story with the given messageid
+    const seriesIDQuery = await query(
+        `SELECT seriesid FROM chapters WHERE messageid = $1`,
+        [messageid]
+    );
+
+    const seriesID = (seriesIDQuery.rows[0] as any).seriesid;
+
     // Deletes the story from the database
     await query(
         `DELETE FROM chapters WHERE messageid = $1 AND userid = $2`,
         [messageid, userid]
     );
 
-    res.status(200).send({ response: "success" });
+    // Gets the most recent chapter in the series
+    const chapterQuery = await query(
+        `SELECT messageid FROM chapters WHERE seriesid = $1 ORDER BY chapterid DESC LIMIT 1`,
+        [seriesID]
+    );
+
+    const newMessageID = (chapterQuery.rows[0] as any).messageid;
+
+    res.status(200).send({ messageid: newMessageID });
 }
 
 async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {

@@ -16,9 +16,9 @@ async function getStory(req: any, userid: string) {
   let content = ``;
 
   if (context != "") {
-    content = `Write a short story about '${prompt}', here is some relevant context '${context}', do not end the story just yet and use every remaining token.`
+    content = `Write a short story about '${prompt}', here is some relevant context '${context}', do not end the story just yet and make it as long as possible.`
   } else {
-    content = `Write a short story about '${prompt}', do not end the story just yet and use every remaining token.`
+    content = `Write a short story about '${prompt}', do not end the story just yet and make it as long as possible.`
   }
   
   const storyPrompt = constructPrompt(content);
@@ -130,9 +130,9 @@ async function writeChapter(prompt: string, context: string): Promise<string> {
   }
   
   if (context != "") {    
-    content = `Write the first chapter of a story about '${prompt}', here is some relevant context '${context}', do not end the story just yet and use every remaining token.`
+    content = `Write the first chapter of a story about '${prompt}', here is some relevant context '${context}', do not end the story just yet and make it as long as possible.`
   } else {
-    content = `Write the first chapter of a story about '${prompt}', do not end the story just yet and use every remaining token.`
+    content = `Write the first chapter of a story about '${prompt}', do not end the story just yet and make it as long as possible.`
   }
   
   const chapterPrompt = constructPrompt(content);
@@ -184,9 +184,9 @@ export async function continueStory(prompt: string, oldStories: string[], userid
   let content = ``;
 
   if (context != "") {
-    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', here is some relevant context '${context}', using every remaining token and include only the story. Do not include the prompt in the story.`
+    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', here is some relevant context '${context}', make it as long as possible and include only the story. Do not include the prompt in the story.`
   } else {
-    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token and include only the story. Do not include the prompt in the story.`
+    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', make it as long as possible and include only the story. Do not include the prompt in the story.`
   }
   console.log("content: ", content);
   const continuePrompt = constructPrompt(content);
@@ -225,9 +225,9 @@ export async function continueChapters(prompt: string, previousChapters: string[
   let content = ``;
 
   if (context != "") {
-    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', here is some relevant context '${context}', using every remaining token and include only the story. Do not include the prompt in the story.`
+    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', here is some relevant context '${context}', make it as long as possible and include only the story. Do not include the prompt in the story.`
   } else {
-    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token and include only the story. Do not include the prompt in the story.`
+    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', make it as long as possible and include only the story. Do not include the prompt in the story.`
   }
 
   const continuePrompt = constructPrompt(content);
@@ -254,7 +254,7 @@ export async function editExcerpt(chapter: string, prompt: string): Promise<stri
   if (chapter.length + prompt.length > 3500) {
     prompt = await summarize(prompt);
   }
-  let content = `Edit the following: '${chapter}' using the prompt: '${prompt}', using every remaining token.`
+  let content = `Edit the following: '${chapter}' using the prompt: '${prompt}', make it as long as possible.`
   const editPrompt = constructPrompt(content);
 
   const completion = await openai.createChatCompletion(editPrompt);

@@ -253,11 +253,13 @@ async function deleteStory(messageID, sessionID) {
         baseURL: baseURL
         });
     
-        const response = await axiosInstance.get(`/api/${messageID}/shortStory`,
+        const response = await axiosInstance.delete(`/api/${messageID}/shortStory`,
             {
-                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                },
+                params: {
+                    token: sessionID,
                 },
             }
         );

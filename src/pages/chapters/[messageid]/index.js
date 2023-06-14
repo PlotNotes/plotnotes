@@ -260,6 +260,9 @@ async function deleteChapter(sessionID, messageid) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                params: {
+                    token: sessionID,
+                },
             }
         );
 
@@ -268,7 +271,10 @@ async function deleteChapter(sessionID, messageid) {
             return;
         }
 
-        Router.push(`/chapters`);
+        const data = await response.data;
+        const newMessageID = data.messageid;
+
+        Router.push(`/chapters/${newMessageID}`);
     } catch(err) {
         console.log('messageid Error: ', err);
     }
