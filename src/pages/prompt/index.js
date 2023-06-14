@@ -217,7 +217,7 @@ export default function Prompt({ sessionID }) {
                         {buttonText}
                     </Button>
                 </Box>
-                <Textarea disabled value={story} cols={60} rows={10} />
+                <Textarea disabled value={story} cols={70} rows={20} />
                 </Box>
             </Box>
         </Box>

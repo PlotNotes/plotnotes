@@ -63,12 +63,11 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames, sessionID }
         alignItems="center">
             <Link href={`/chapters/${messageIDs[index]}`}>
                 <Box
-                    justifyContent="center"
-                    alignItems="center">
-                        <Heading
-                            fontSize={24}
-                            fontWeight="bold"
-                            color="black">
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    sx={{ paddingBottom:4 }}>
+                        <Heading>
                             {storyNames[index]}
                         </Heading>
                         
@@ -112,8 +111,6 @@ export const ChapterMap = ({ chapter, index, messageIDs, storyNames, sessionID }
 }
 
 export const deleteChapter = async (messageID, sessionID) => {
-    console.log("messageID:", messageID);
-    console.log("sessionID:", sessionID);
     
     const response = await fetch(`/api/chapterCmds`,
             {

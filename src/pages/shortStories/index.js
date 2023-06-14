@@ -63,9 +63,11 @@ export const StoryMap = ({ story, index, messageIDs, storyNames, sessionID }) =>
     return (
     <Box
         display="flex"
-        alignItems="center">
+        alignItems="center"
+        sx={{ paddingBottom:4 }}>
             <Link href={`/shortStories/${messageIDs[index]}`}>
                 <Box
+                    display="flex"
                     justifyContent="center"
                     alignItems="center">
                         <Heading

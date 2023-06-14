@@ -189,19 +189,18 @@ function ChapterMap({ chapter, messageIDs, index, sessionID }) {
     return (
         <Box
             display="flex"
-            alignItems="center">
+            alignItems="center"
+            sx={{ paddingLeft:5 }}>
                 <Link href={`/shortStories/${messageIDs[index]}`}
                 onClick={
                     (ev) => {
                         if (manualEdit) {
                             ev.preventDefault();
                         }
-                    }                    
-                }>
+                    }}>
                     <Box
                         display="flex"
                         flexDirection="row"
-                        justifyContent="center"
                         alignItems="center"
                         sx={{ paddingBottom: 3 }}>
                         <Textarea

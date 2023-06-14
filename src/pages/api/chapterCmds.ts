@@ -3,14 +3,13 @@ import { query } from "./db";
 import { userLoggedIn } from "./authchecks";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    console.log("chapterCmds");
+
     const userid = await userLoggedIn(req, res);
-    console.log(userid);
+
     if (userid == "") {
         res.status(401).send({ response: "Not logged in" });
         return;
     }
-    console.log(req.method);
 
     if (req.method == "POST") {
         await addChapter(req, res, userid);
@@ -25,17 +24,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function deleteChapter(req: NextApiRequest, res: NextApiResponse, userid: string) {
 
-    console.log("deleting chapter");
     // Deletes all chapters related to the given messageid
     const messageid = req.headers.messageid as string;
-    console.log(messageid);
+
     const seriesIDQuery = await query(
         `SELECT (seriesid) FROM chapters WHERE messageid = $1 AND userid = $2`,
         [messageid, userid]
     );
 
     const seriesID = (seriesIDQuery.rows[0] as any).seriesid;
-    console.log(seriesID);
+
     await query(
         `DELETE FROM chapters WHERE seriesid = $1`,
         [seriesID]

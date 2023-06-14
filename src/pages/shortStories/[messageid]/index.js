@@ -139,13 +139,8 @@ export default function Page({ sessionID, stories, title, messageIDs }) {
                     <Box
                         display="flex"
                         flexDirection="column"
-                        justifyContent="center"
-                        alignItems="center"
-                        bg="gray.50">
+                        alignItems="center">
                             <Heading
-                                fontSize={24}
-                                fontWeight="bold"
-                                color="black"
                                 sx={{ paddingTop: 4 }}>
                                 Add to the story
                             </Heading>
@@ -186,7 +181,8 @@ function StoryMap({story, index, messageID, sessionID}) {
     return (
         <Box
             display="flex"
-            alignItems="center">
+            alignItems="center"
+            sx={{ paddingLeft:5 }}>
                 <Link href={`/shortStories/${messageID}`}
                     onClick={(ev) => {
                         if (manualEdit) {
