@@ -46,7 +46,7 @@ export default function TermContext({ sessionid, context, term }) {
                     <Textarea
                         id="context"
                         defaultValue={context}                        
-                        rows={40}
+                        rows={20}
                         cols={90}/>
                     <Button
                         onClick={() => {
