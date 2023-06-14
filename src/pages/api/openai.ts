@@ -47,7 +47,7 @@ export function constructPrompt(content: string) {
     model: "gpt-3.5-turbo",
     messages, 
     max_tokens: max_tokens,
-    temperature: 1.0,
+    temperature: 1.7,
   }; 
 }
 
@@ -82,6 +82,6 @@ function getMaxTokens(content: string) {
   }
 
   // Helper method that normalizes given text by making it all lowercase and removing punctuation
-export function normalizeText(text: string): string {
+function normalizeText(text: string): string {
   return text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
 }

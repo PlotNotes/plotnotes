@@ -2,12 +2,28 @@ import { getOpenAIClient, constructPrompt, createEmbedding, tokenize } from "./o
 import { userLoggedIn } from "./authchecks";
 import { query } from "./db";
 
-async function getStory(req: any) {
+async function getStory(req: any, userid: string) {
   const openai = getOpenAIClient();
-  let content = `Write a short story about '${req.body.prompt}', do not end the story just yet and use every remaining token.`
-  const prompt = constructPrompt(content);
+  const prompt = req.body.prompt;
+  const context = await getContext(prompt, userid);
 
-  const completion = await openai.createChatCompletion(prompt);
+  const tokens = tokenize(prompt + " " + context);
+
+  if (tokens > 1000) {
+    summarize(context);
+  }
+
+  let content = ``;
+
+  if (context != "") {
+    content = `Write a short story about '${prompt}', here is some relevant context '${context}', do not end the story just yet and use every remaining token.`
+  } else {
+    content = `Write a short story about '${prompt}', do not end the story just yet and use every remaining token.`
+  }
+  
+  const storyPrompt = constructPrompt(content);
+
+  const completion = await openai.createChatCompletion(storyPrompt);
   return completion.data.choices[0].message!.content.trim();
 
 }
@@ -24,7 +40,7 @@ export default async function handler(req: any, res: any) {
   const createShortStory = req.body.shortStory;
 
   if (createShortStory) {
-    const story = await getStory(req);
+    const story = await getStory(req, userid);
     const storyName = await createStoryName(story);
     res.status(200).send({story: story, storyName: storyName});
   } else {
@@ -33,7 +49,6 @@ export default async function handler(req: any, res: any) {
     const storyName = await createStoryName(prompt);
 
     const context = await getContext(prompt, userid);
-    console.log(context);
 
     // Writes 1 chapter as a test, TODO: write more chapters
     let chapter = await writeChapter(prompt, context);
@@ -113,13 +128,13 @@ async function writeChapter(prompt: string, context: string): Promise<string> {
   if (tokens > 1000) {
     summarize(context);
   }
-  console.log(context)
+  
   if (context != "") {    
     content = `Write the first chapter of a story about '${prompt}', here is some relevant context '${context}', do not end the story just yet and use every remaining token.`
   } else {
     content = `Write the first chapter of a story about '${prompt}', do not end the story just yet and use every remaining token.`
   }
-  console.log(content)
+  
   const chapterPrompt = constructPrompt(content);
 
   const openai = getOpenAIClient();
@@ -141,7 +156,7 @@ async function createStoryName(story: string): Promise<string> {
   return completion.data.choices[0].message!.content.trim();
 }
 
-export async function continueStory(prompt: string, oldStories: string[]): Promise<string> {
+export async function continueStory(prompt: string, oldStories: string[], userid: string): Promise<string> {
   const openai = getOpenAIClient();
 
   let summary = "";
@@ -154,7 +169,23 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
   } catch (err) {
     console.log("prompt error: ", err);
   }
-  let content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token and only include the story.`
+
+  let context = await getContext(prompt, userid);
+
+  const tokens = tokenize(prompt + " " + summary + " " + context);
+
+  if (tokens > 1000) {
+    summary = await summarize(summary);
+    context = await summarize(context);
+  }
+
+  let content = ``;
+
+  if (context != "") {
+    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', here is some relevant context '${context}', using every remaining token and include only the story.`
+  } else {
+    content = `Continue the following story: "${summary}" using the prompt: '${prompt}', using every remaining token and include only the story.`
+  }
 
   const continuePrompt = constructPrompt(content);
 
@@ -162,7 +193,7 @@ export async function continueStory(prompt: string, oldStories: string[]): Promi
   return completion.data.choices[0].message!.content.trim();
 }
 
-export async function continueChapters(prompt: string, previousChapters: string[]) {
+export async function continueChapters(prompt: string, previousChapters: string[], userid: string) {
 
   // Summarizes each previous chapter
   let summaries = ""
@@ -176,10 +207,26 @@ export async function continueChapters(prompt: string, previousChapters: string[
   if (prompt.length + summaries.length > 1000) {
     summaries = await summarize(summaries);
   }
-  console.log(prompt.length + summaries.length)
+  
   const openai = getOpenAIClient();
 
-  let content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token and include only the story.`
+
+  let context = await getContext(prompt, userid);
+
+  const tokens = tokenize(prompt + " " + summaries + " " + context);
+
+  if (tokens > 1000) {
+    summaries = await summarize(summaries);
+    context = await summarize(context);
+  }
+
+  let content = ``;
+
+  if (context != "") {
+    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', here is some relevant context '${context}', using every remaining token and include only the story.`
+  } else {
+    content = `Continue the following story: "${summaries}" using the prompt: '${prompt}', using every remaining token and include only the story.`
+  }
 
   const continuePrompt = constructPrompt(content);
 
@@ -190,7 +237,7 @@ export async function continueChapters(prompt: string, previousChapters: string[
 async function summarize(story: string): Promise<string> {
   const openai = getOpenAIClient();
 
-  let content = `Summarize the following as much as possible: '${story}'`;
+  let content = `Summarize the following as much as possible: '${story}'. If there is nothing to summarize, say nothing.`;
   
   const summaryPrompt = constructPrompt(content);
 

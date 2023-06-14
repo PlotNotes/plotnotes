@@ -123,7 +123,7 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userId: st
         chapters.push((chaptersQuery.rows[i] as any).message);
     }
     // Generates the next chapter
-    const story = await continueChapters(prompt, chapters);
+    const story = await continueChapters(prompt, chapters, userId);
 
     const storyNameQuery = await query(
         `SELECT name FROM chapters WHERE seriesid = $1 ORDER BY chapterid DESC LIMIT 1`,
