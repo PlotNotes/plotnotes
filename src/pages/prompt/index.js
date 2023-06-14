@@ -199,6 +199,10 @@ export default function Prompt({ sessionID }) {
                             mt: 3,
                         }}
                     />
+                    <Header 
+                        sx={{ marginLeft:5 }}>
+                        Use the custom terms page to help create your story!
+                    </Header>
                 </Box>
                 <Box
                     bg="gray.2"
