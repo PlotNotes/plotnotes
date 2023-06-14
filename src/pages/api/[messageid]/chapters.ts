@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../db';
 import { userLoggedIn } from '../authchecks';
-import { continueChapters } from '../prompt';
-import { editExcerpt } from '../prompt';
+import { continueChapters, editExcerpt } from '../prompt';
 
 
 export default async function chapterHistory(req: NextApiRequest, res: NextApiResponse) {
