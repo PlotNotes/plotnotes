@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Heading, Header, Textarea, Button, IconButton } from '@primer/react';
+import { Box, Heading, Header, Textarea, Button, IconButton, Spinner } from '@primer/react';
 import Head from 'next/head'
 import cookies from 'next-cookies'
 import loadSession from 'src/pages/api/session'
@@ -11,6 +11,8 @@ import axios from 'axios';
 import { TrashIcon } from '@primer/octicons-react'
 
 export default function CustomTerms({ sessionID, terms, termIds, contexts }) {    
+
+    const [generating, setGenerating] = useState(false);
 
     const DisplayTerm = ({term, index}) => {
         
@@ -68,6 +70,46 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
         );
     }
 
+    const ActionButton = ({ buttonText, onClick, trigger }) => (
+        <Button variant='primary' onClick={onClick} disabled={trigger} sx={{ mt: 2, marginLeft: 'auto', marginRight: 'auto' }}>
+            <Box sx={{display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "3px"}}>
+                <Box>{buttonText}</Box>
+                    <Box>
+                        <Spinner size="small" sx={{marginLeft: "12px", display: trigger ? "block" : "none"}} />
+                    </Box>
+            </Box>
+        </Button>
+    );
+
+    const generateTerm = async () => {
+
+        setGenerating(true);
+
+        const termName = document.getElementById('term').value;
+
+        const response = await fetch(`/api/customTerms/generate`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Cookie': `token=${sessionID}`,
+                'term': termName,
+            },
+        });
+
+        if (response.status === 401) {
+            Router.push(`/signin?from=/customTerms`);
+            return;
+        }
+
+        const data = await response.json();
+
+        const termid = data.termid;
+
+        setGenerating(false);
+
+        Router.push(`/customTerms/${termid}`);
+    }
+
     return (
         <div>
             <Head>
@@ -105,13 +147,21 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
                         placeholder="Context"
                         rows={10}
                         cols={70}/>
-                    <Button
-                        onClick={() => {
-                            createTerm(document.getElementById('term').value, document.getElementById('context').value);
-                            Router.reload();
-                        }}>
-                        Create
-                    </Button>
+                    <Box
+                        display="flex"
+                        flexDirection="row"
+                        alignItems="center"
+                        sx={{ marginBottom:4 }}>
+                        <Button
+                            onClick={() => {
+                                createTerm(document.getElementById('term').value, document.getElementById('context').value);
+                                Router.reload();
+                            }}
+                            sx={{ marginTop:2, marginRight:4 }}>
+                            Create
+                        </Button>
+                        <ActionButton buttonText="Generate" onClick={generateTerm} trigger={generating} />
+                    </Box>
             </Box>
         </div>
     );

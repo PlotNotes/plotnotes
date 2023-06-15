@@ -1,4 +1,4 @@
-import { getOpenAIClient, constructPrompt, createEmbedding, tokenize } from "./openai";
+import { getOpenAIClient, constructPrompt, createEmbedding, tokenize, getCustomTermName } from "./openai";
 import { userLoggedIn } from "./authchecks";
 import { query } from "./db";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -207,4 +207,24 @@ export async function editExcerpt(chapter: string, prompt: string) {
   }
 
   return editedChapter;
+}
+
+export async function createCustomTerm(termNames: any[], termName: string): Promise<{ termName: string, termDescription: string }> {
+
+  if (!termName) {
+    const termNameContent = `Create a brand new random term that doesn't exist yet for a fictional story event or character that isnt one of the following terms: 
+    '${termNames.toString()}', include nothing except the name of the term. Do not use quotes or periods at the end.`;
+    
+    termName = await getCustomTermName(termNameContent);
+  }
+  
+  const termContent = `Create a description for the following fictional story term '${termName}', include nothing except the description of the term. 
+  Do not use quotes or attach it to an existing franchise. Make it several paragraphs.`;
+  const termDescription = await getOpenAICompletion(termContent);
+  
+  if (termName.endsWith(`.`)) {
+    termName = termName.slice(0, -1);
+  }
+
+  return { termName, termDescription };
 }
