@@ -47,7 +47,8 @@ export function constructPrompt(content: string) {
     model: "gpt-3.5-turbo",
     messages, 
     max_tokens: max_tokens,
-    temperature: 1.0,
+    temperature: 1.5,
+    top_p: 0,
   }; 
 }
 

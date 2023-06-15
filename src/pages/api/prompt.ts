@@ -4,11 +4,26 @@ import { query } from "./db";
 import { NextApiRequest, NextApiResponse } from "next";
 
 
-const generatePrompt = (prompt: string, context: string, additionalText: string) => {
+const generateChapterPrompt = (prompt: string, context: string, additionalText: string) => {
   return `Write ${additionalText} about '${prompt}', ${
     context ? `here is some relevant context '${context}', ` : ""
-  }do not end the story just yet and make it as long as possible.`;
+  }do not end the story just yet and make this response at least 20,000 words. 
+  Include only the story and do not use the prompt in the response. Do not name the story.
+  Chapter 1: The Start`;
 };
+
+const generateShortStoryPrompt = (prompt: string, context: string, additionalText: string) => {
+  return `Write ${additionalText} about '${prompt}', ${
+    context ? `here is some relevant context '${context}', ` : ""
+  }do not end the story just yet and make this response at least 20,000 words. 
+  Include only the story and do not use the prompt in the response. Do not name the story.`;
+}
+
+const generateContinuePrompt = (prompt: string, context: string, summary: string) => {
+  return `Continue the story: '${summary}' using the following prompt ${prompt}, ${
+    context ? `here is some relevant context '${context}', ` : ""
+  }. Include only the story and do not use the prompt in the response.`;
+}
 
 const getOpenAICompletion = async (content: string) => {
   const openai = getOpenAIClient();
@@ -20,8 +35,19 @@ const getOpenAICompletion = async (content: string) => {
 const getStory = async (req: NextApiRequest, userid: string) => {
   const prompt = req.body.prompt;
   const context = await getContext(prompt, userid);
-  const content = generatePrompt(prompt, context, 'a short story');
-  return await getOpenAICompletion(content);
+  const content = generateShortStoryPrompt(prompt, context, 'a short story');
+  let completion = await getOpenAICompletion(content);
+
+  // If the story is too short, continue the completion where it left off
+  let tokens = tokenize(completion);
+  while (tokens < 1000) {
+    const summary = await summarize(completion);
+    const newContent = generateContinuePrompt(prompt, context, summary);
+    const newCompletion = await getOpenAICompletion(newContent);
+    completion += ` ${newCompletion}`;
+    tokens = tokenize(completion);
+  }
+  return completion;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -72,8 +98,19 @@ const getContext = async (prompt: string, userid: string) => {
 };
 
 const writeChapter = async (prompt: string, context: string) => {
-  const content = generatePrompt(prompt, context, 'the first chapter of a story');
-  return await getOpenAICompletion(content);
+  const content = generateChapterPrompt(prompt, context, 'the first chapter of a story');
+  let completion = await getOpenAICompletion(content);
+
+  // If the story is too short, continue the completion where it left off
+  let tokens = tokenize(completion);
+  while (tokens < 1000) {
+    const summary = await summarize(completion);
+    const newContent = generateContinuePrompt(prompt, context, summary);
+    const newCompletion = await getOpenAICompletion(newContent);
+    completion += ` ${newCompletion}`;
+    tokens = tokenize(completion);
+  }
+  return completion;
 };
 
 const createStoryName = async (story: string) => {
@@ -82,21 +119,27 @@ const createStoryName = async (story: string) => {
 };
 
 export async function continueStory(prompt: string, oldStories: string[], userid: string) {
-  const openai = getOpenAIClient();
 
   const summary = await summarizeMultiple(oldStories);
   let context = await getContext(prompt, userid);
 
   let content = generateContinuationPrompt(prompt, summary, context);
 
-  const continuePrompt = constructPrompt(content);
-  const completion = await openai.createChatCompletion(continuePrompt);
+  let completion = await getOpenAICompletion(content);
 
-  return completion.data.choices[0].message!.content.trim();
+  // If the story is too short, continue the completion where it left off
+  let tokens = tokenize(completion);
+  while (tokens < 1000) {
+    const summary = await summarize(completion);
+    const newContent = generateContinuePrompt(prompt, context, summary);
+    const newCompletion = await getOpenAICompletion(newContent);
+    completion += ` ${newCompletion}`;
+    tokens = tokenize(completion);
+  }
+  return completion;
 }
 
 export async function continueChapters(prompt: string, previousChapters: string[], userid: string) {
-  const openai = getOpenAIClient();
 
   let summaries = await summarizeMultiple(previousChapters);
   
@@ -104,10 +147,18 @@ export async function continueChapters(prompt: string, previousChapters: string[
 
   let content = generateContinuationPrompt(prompt, summaries, context);
 
-  const continuePrompt = constructPrompt(content);
-  const completion = await openai.createChatCompletion(continuePrompt);
-
-  return completion.data.choices[0].message!.content.trim();
+  let completion = await getOpenAICompletion(content);
+  
+  // If the story is too short, continue the completion where it left off
+  let tokens = tokenize(completion);
+  while (tokens < 1000) {
+    const summary = await summarize(completion);
+    const newContent = generateContinuePrompt(prompt, context, summary);
+    const newCompletion = await getOpenAICompletion(newContent);
+    completion += ` ${newCompletion}`;
+    tokens = tokenize(completion);
+  }
+  return completion;
 }
 
 async function summarizeMultiple(texts: string[]) {
