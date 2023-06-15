@@ -21,7 +21,7 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
                 display="flex"
                 flexDirection="rows"
                 alignItems="center"
-                sx={{ paddingBottom:4 }}>
+                sx={{ paddingBottom:4, paddingRight:4 }}>
                 <Link href={`/customTerms/${termIds[index]}`}>
                     <Box
                         display="flex"
@@ -112,58 +112,70 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
 
     return (
         <div>
-            <Head>
-                <title>PlotNotes - Custom Terms</title>
-            </Head>
-            <Header>
-                <HomeButton />
-                <HeaderItem href="/prompt" text="Prompt" />
-                <HeaderItem href="/shortStories" text="Short Stories" />
-                <HeaderItem href="/chapters" text="Chapters" />                
-                <Header.Item full />
-                <LogoutButton />
-            </Header>
-            <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center">
-                    <Heading sx={{ paddingBottom: 5, paddingRight: 4 }} >Custom Terms</Heading>
-                    { terms.map((term, index) => (
-                        <DisplayTerm key={termIds[index]} term={term} index={index} />
-                    )) }
-            </Box>
-            <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center">
-                    <Heading sx={{ paddingTop:4 }}>Create New Term</Heading>
-                    <Textarea
-                        id="term"
-                        placeholder="Term"
-                        rows={1}
-                        cols={70}/>
-                    <Textarea
-                        id="context"
-                        placeholder="Context"
-                        rows={10}
-                        cols={70}/>
+    <Head>
+        <title>PlotNotes - Custom Terms</title>
+    </Head>
+    <Header>
+        <HomeButton />
+        <HeaderItem href="/prompt" text="Prompt" />
+        <HeaderItem href="/shortStories" text="Short Stories" />
+        <HeaderItem href="/chapters" text="Chapters" />                
+        <Header.Item full />
+        <LogoutButton />
+    </Header>
+    <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center">
+            <Heading sx={{ paddingBottom: 5, paddingRight: 4 }} >Custom Terms</Heading>
+            { 
+                // chunk the terms array into sub-arrays of 2 elements each
+                Array.from({length: Math.ceil(terms.length / 2)}, (v, i) => i).map(chunkIndex => (
                     <Box
+                        key={chunkIndex}
                         display="flex"
                         flexDirection="row"
-                        alignItems="center"
-                        sx={{ marginBottom:4 }}>
-                        <Button
-                            onClick={() => {
-                                createTerm(document.getElementById('term').value, document.getElementById('context').value);
-                                Router.reload();
-                            }}
-                            sx={{ marginTop:2, marginRight:4 }}>
-                            Create
-                        </Button>
-                        <ActionButton buttonText="Generate" onClick={generateTerm} trigger={generating} />
+                        alignItems="center">
+                        { terms.slice(chunkIndex * 2, (chunkIndex + 1) * 2).map((term, index) => (
+                            <DisplayTerm key={termIds[chunkIndex * 2 + index]} term={term} index={chunkIndex * 2 + index} />
+                        ))}
                     </Box>
+                ))
+            }
+    </Box>
+    <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center">
+            <Heading sx={{ paddingTop:4 }}>Create New Term</Heading>
+            <Textarea
+                id="term"
+                placeholder="Term"
+                rows={1}
+                cols={70}/>
+            <Textarea
+                id="context"
+                placeholder="Context"
+                rows={10}
+                cols={70}/>
+            <Box
+                display="flex"
+                flexDirection="row"
+                alignItems="center"
+                sx={{ marginBottom:4 }}>
+                <Button
+                    onClick={() => {
+                        createTerm(document.getElementById('term').value, document.getElementById('context').value);
+                        Router.reload();
+                    }}
+                    sx={{ marginTop:2, marginRight:4 }}>
+                    Create
+                </Button>
+                <ActionButton buttonText="Generate" onClick={generateTerm} trigger={generating} />
             </Box>
-        </div>
+    </Box>
+</div>
+
     );
 }
 
