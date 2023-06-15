@@ -34,7 +34,7 @@ export function getOpenAIClient() {
   return new OpenAIApi(getOpenAIConfiguration());
 }
 
-export function constructPrompt(content: string) {
+export function constructPrompt(content: string, temperature?: number) {
   let messages = [];
 
   messages.push({
@@ -43,6 +43,17 @@ export function constructPrompt(content: string) {
   })
 
   const max_tokens = getMaxTokens(content);
+
+  if (temperature) {
+    return {
+      model: "gpt-3.5-turbo",
+      messages, 
+      max_tokens: max_tokens,
+      temperature: temperature,
+      top_p: 0,
+    };
+  }
+
   return {
     model: "gpt-3.5-turbo",
     messages, 
@@ -80,6 +91,19 @@ function getMaxTokens(content: string) {
     const max_tokens = (4096 - tokens.length) - 10;
     
     return max_tokens;
+  }
+
+  export async function getCustomTermName(content: string): Promise<string> {
+
+    const openai = getOpenAIClient();
+
+    const prompt = constructPrompt(content, 2);
+
+    const completion = await openai.createChatCompletion(prompt);
+
+    const termName = completion.data.choices[0].message!.content.trim();
+
+    return termName;
   }
 
   // Helper method that normalizes given text by making it all lowercase and removing punctuation
