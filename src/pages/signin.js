@@ -176,6 +176,17 @@ export default function SignIn() {
                     }}/>
                 </Box>
             </PageLayout>
+            {/* A short area to tell the user what loggin in with google entails */}
+            <PageLayout>
+                <Box>
+                    <Heading fontSize={4} color="blue.4" fontFamily="mono">Google Login</Heading>
+                    <p>
+                        Logging in with Google will allow PlotNotes to access your email address. This is used to identify you and allow you to log in with Google in the future.
+                        The only thing PlotNotes will do with your email address is use it to identify you. PlotNotes will not send you any emails, or share your email address 
+                        with anyone.
+                    </p>
+                </Box>
+            </PageLayout>
         </div>
     );        
 }
