@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import Head from 'next/head'
 import Router, { useRouter } from 'next/router'
-
+import { IconButton } from '@primer/react'
+import { MarkGithubIcon } from '@primer/octicons-react'
 
 export default function Home() {
 
@@ -65,6 +66,13 @@ export default function Home() {
         >
           Start Writing
         </button>
+        {/* Link to github repo */}
+        <IconButton
+        aria-labelledby=''
+        icon={MarkGithubIcon}
+        onClick={() => window.open('https://github.com/PlotNotes/plotnotes')}
+        sx={{ border: 'none', width: 60, height: 60 }}
+        />
       </main>
     </div>
   )
