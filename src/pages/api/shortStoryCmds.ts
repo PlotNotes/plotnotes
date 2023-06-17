@@ -1,24 +1,30 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
-import { userLoggedIn } from './authchecks';
+import { getStory } from './prompt';
 
 export default async function insertStory(req: NextApiRequest, res: NextApiResponse) {
-    const userid = await userLoggedIn(req, res);
+    // const userid = await userLoggedIn(req, res);
 
-    if (userid == "") {
-        res.status(401).send({ response: "Not logged in" });
-        return;
-    }
+    // if (userid == "") {
+    //     res.status(401).send({ response: "Not logged in" });
+    //     return;
+    // }
 
-    if (req.method == "POST") {
-        await postRequest(req, res, userid);
-    } else if (req.method == "GET") {
-        await getRequest(req, res, userid);
-    } else if (req.method == "PUT") {
-        await putRequest(req, res, userid);
-    } else if (req.method == "DELETE") {
-        await deleteRequest(req, res, userid);
-    }
+    // if (req.method == "POST") {
+    //     await postRequest(req, res, userid);
+    // } else if (req.method == "GET") {
+    //     await getRequest(req, res, userid);
+    // } else if (req.method == "PUT") {
+    //     await putRequest(req, res, userid);
+    // } else if (req.method == "DELETE") {
+    //     await deleteRequest(req, res, userid);
+    // }
+}
+
+export async function generateShortStory(prompt: string, userid: string) {
+
+    const { story, storyName } = await getStory(prompt, userid);
+
 }
 
 async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
@@ -178,16 +184,16 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: st
     }        
 }
 
-export async function getStory(storyID: string): Promise<string> {
-    try {
-        const storyQuery = await query(
-            `SELECT (story) FROM stories WHERE id = $1`,
-            [storyID]
-        );
-        const story = (storyQuery.rows[0] as any).story;
-        return story;
-    } catch (err) {
-        console.error(err);
-        throw err;
-    }
-}
+// export async function getStory(storyID: string): Promise<string> {
+//     try {
+//         const storyQuery = await query(
+//             `SELECT (story) FROM stories WHERE id = $1`,
+//             [storyID]
+//         );
+//         const story = (storyQuery.rows[0] as any).story;
+//         return story;
+//     } catch (err) {
+//         console.error(err);
+//         throw err;
+//     }
+// }

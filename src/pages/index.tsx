@@ -8,7 +8,7 @@ export default function Home() {
 
   const router = useRouter()
   const loggedIn = router.query.loggedIn
-  console.log(loggedIn)
+
   const loginButton = () => {
     // If loggedIn is null or false, then display the login button
     if (loggedIn == null || loggedIn == "false") {

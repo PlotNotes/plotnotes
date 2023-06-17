@@ -7,7 +7,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 const generateChapterPrompt = (prompt: string, context: string, additionalText: string) => {
   return `Write ${additionalText} about '${prompt}', ${
     context ? `here is some relevant context '${context}', ` : ""
-  }do not end the story just yet and make this response at least 20,000 words. 
+  }do not end the story just yet and make this response as long as possible. 
   Include only the story and do not use the prompt in the response. Do not name the story.
   Chapter 1: The Start`;
 };
@@ -15,7 +15,7 @@ const generateChapterPrompt = (prompt: string, context: string, additionalText: 
 const generateShortStoryPrompt = (prompt: string, context: string, additionalText: string) => {
   return `Write ${additionalText} about '${prompt}', ${
     context ? `here is some relevant context '${context}', ` : ""
-  }do not end the story just yet and make this response at least 20,000 words. 
+  }do not end the story just yet and make this response as long as possible. 
   Include only the story and do not use the prompt in the response. Do not name the story.`;
 }
 
@@ -32,10 +32,11 @@ const getOpenAICompletion = async (content: string) => {
   return completion.data.choices[0].message!.content.trim();
 };
 
-const getStory = async (req: NextApiRequest, userid: string) => {
-  const prompt = req.body.prompt;
+export async function getStory (prompt: string, userid: string): Promise<{story: string, storyName: string}> {
   const context = await getContext(prompt, userid);
+
   const content = generateShortStoryPrompt(prompt, context, 'a short story');
+
   let completion = await getOpenAICompletion(content);
 
   // If the story is too short, continue the completion where it left off
@@ -47,7 +48,10 @@ const getStory = async (req: NextApiRequest, userid: string) => {
     completion += ` ${newCompletion}`;
     tokens = tokenize(completion);
   }
-  return completion;
+
+  const storyName = await createStoryName(completion);
+
+  return {story: completion, storyName};
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -63,9 +67,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const context = await getContext(prompt, userid);
 
   if (createShortStory) {
-    const story = await getStory(req, userid);
-    const storyName = await createStoryName(story);
-    res.status(200).send({story, storyName});
+    // const story = await getStory(req, userid);
+    // const storyName = await createStoryName(story);
+    // res.status(200).send({story, storyName});
   } else {
     const chapter = await writeChapter(prompt, context);
     const storyName = await createStoryName(prompt);

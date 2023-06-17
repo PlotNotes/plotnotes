@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Heading, Header, Textarea, Button, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
@@ -10,6 +10,24 @@ import { LogoutButton } from '../signin';
 import { HomeButton, HeaderItem } from '../chapters';
 
 export default function Prompt({ sessionID }) {
+
+    useEffect(() => {
+        const ws = new WebSocket('ws://localhost:8080');
+
+        ws.addEventListener('open', () => {
+          console.log('Connected to server');
+        });
+    
+        ws.addEventListener('message', (event) => {
+          console.log(`Received: ${event.data}`);
+        });
+    
+        // Return a cleanup function that will be called when the component is unmounted
+        return () => {
+          ws.close();
+        };
+      }, []);
+
   const [prompt, setPrompt] = useState('');
   const [story, setStory] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -23,13 +41,13 @@ export default function Prompt({ sessionID }) {
     ev.preventDefault();
     setIsGenerating(true);
     try {
-        const response = await fetch('/api/prompt',
+        const response = await fetch('/api/jobs',
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ prompt:prompt, shortStory: true }),
+                body: JSON.stringify({ prompt:prompt, method: 'shortStory' }),
             }
         );
         
@@ -38,24 +56,24 @@ export default function Prompt({ sessionID }) {
             return;
         }
 
-        const storyInfo = await response.json();        
-        let newStory = storyInfo.story.split('response: ')[0];
-        let storyName = storyInfo.storyName.split('response: ')[0];
-        setStory(newStory);
+        // const storyInfo = await response.json();        
+        // let newStory = storyInfo.story.split('response: ')[0];
+        // let storyName = storyInfo.storyName.split('response: ')[0];
+        // setStory(newStory);
         
-        await fetch('/api/shortStoryCmds',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ sessionId: sessionID, 
-                                       story: newStory, 
-                                       storyName: storyName, 
-                                       prompt: prompt, 
-                                       iterationId: 0 }),
-            }
-        );
+        // await fetch('/api/shortStoryCmds',
+        //     {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({ sessionId: sessionID, 
+        //                                story: newStory, 
+        //                                storyName: storyName, 
+        //                                prompt: prompt, 
+        //                                iterationId: 0 }),
+        //     }
+        // );
         setIsGenerating(false);
     } catch(err) {
         console.log('Error: ', err);
