@@ -2,7 +2,10 @@ import { getSession, deleteExpiredSessions } from './sessionCmds'
 
 let deletingExpiredSessions = false
 
-export default async function loadSession(sessionId) {
+export default async function loadSession(req, res) {
+
+  const sessionId = req.cookies.sessionID
+
   if (!deletingExpiredSessions) {
     deletingExpiredSessions = true
     setInterval(async () => {
@@ -12,8 +15,8 @@ export default async function loadSession(sessionId) {
   const session = await getSession(sessionId)
 
   if (session.rows.length > 0) {
-    return session
+    res.status(200).send({ sessionId: sessionId});
   } else {
-    return null
+    res.status(401).send({ error: 'You must be signed in to view the protected content on this page.'});
   }
 }

@@ -8,7 +8,7 @@ export async function userLoggedIn(req: NextApiRequest, res: NextApiResponse): P
     let sessionid = "";
     let userid = "";
     try {
-        sessionid = req.cookies.token as string;
+        sessionid = req.cookies.sessionID as string;
 
         if (!sessionid) {            
             return "";

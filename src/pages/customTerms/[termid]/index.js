@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, Tooltip } from '@primer/react';
 import Head from 'next/head'
-import cookies from 'next-cookies'
+import Cookies from 'js-cookie'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -18,7 +18,7 @@ export default function TermContext({ sessionid, context, term }) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `token=${sessionid}`,
+                'Cookie': `sessionID=${sessionid}`,
                 },
                 body: JSON.stringify({ context: context }),
             }
@@ -62,8 +62,8 @@ export default function TermContext({ sessionid, context, term }) {
 
 export async function getServerSideProps(ctx) {
     const termid = ctx.query.termid;
-    const c = cookies(ctx);
-    const sess = await loadSession(c.token);
+    const c = Cookies.get("sessionID");
+    const sess = await loadSession(c);
 
     if (!sess) {
       return {
@@ -89,7 +89,7 @@ export async function getServerSideProps(ctx) {
         {
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `token=${c.token}`,
+                'Cookie': `sessionID=${c}`,
             },
         }
     );

@@ -1,15 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Box, Heading, Header, Textarea, Button, Tooltip, IconButton } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import cookies from 'next-cookies'
-import loadSession from 'src/pages/api/session'
+import Cookies from 'js-cookie'
 import axios from 'axios';
 import { LogoutButton } from '../signin';
 import { TrashIcon } from '@primer/octicons-react'
 
-export default function ChapterDisplay({ sessionID, storyNames, messageIDs, chapters }) {
+export default function ChapterDisplay() {
+
+    const [sessionID, setSessionID] = useState("");
+    const [storyNames, setStoryNames] = useState([]);
+    const [messageIDs, setMessageIDs] = useState([]);
+    const [chapters, setChapters] = useState([]);
+
+    useEffect(() => {
+    const getSession = async () => {
+        const session = Cookies.get('sessionID');
+        const response = await fetch(`/api/session`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `sessionID=${session}`,
+        },
+        });
+
+        if (response.status === 401) {
+        Router.push(`/signin?from=/prompt`);
+        return;
+        }
+
+        const data = await response.json();
+        setSessionID(data.sessionId);
+    };
+
+    const getChapters = async () => {
+
+        // Makes a fetch request to get the user's chapter history
+        const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://plotnotes.ai' 
+        : 'http://localhost:3000';
+
+        const axiosInstance = axios.create({
+        baseURL: baseURL
+        });
+
+        const response = await axiosInstance.get(`/api/chapterCmds`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+        
+        const chapterInfo = await response.data;
+
+        // If the json has an error saying the messageID does not belong to the user, redirect to the home page
+        if (chapterInfo.error) {
+            console.log("chapterInfo error:", chapterInfo.error);
+            return {
+                redirect: {
+                    permanent: false,
+                    destination: `/`,
+                },
+                props:{ },
+            };
+        } else if (chapterInfo.response === 'no chapters') {
+            return {
+                props: { storyNames: [], messageIDs: [], chapters: [] },
+            };
+        }
+
+        setChapters(chapterInfo.chapters);
+        setStoryNames(chapterInfo.storyNames);
+        setMessageIDs(chapterInfo.messageIDs);
+    }
+
+    getSession();
+    getChapters();
+    }, []);
+
 
     return (
         <div>
@@ -117,7 +189,7 @@ export const deleteChapter = async (messageID, sessionID) => {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cookie': `token=${sessionID}`,
+                    'Cookie': `sessionID=${sessionID}`,
                     'messageid': messageID,
                 },                               
             }
@@ -150,62 +222,62 @@ export const HomeButton = () => (
     </Header.Item>
 )
 
-export async function getServerSideProps(ctx) {
+// export async function getServerSideProps(ctx) {
 
-    const c = cookies(ctx);
-    const sess = await loadSession(c.token);
+//     const c = Cookies.get("sessionID");
+//     const sess = await loadSession(c);
 
-    if (!sess) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: "/signin?from=/chapters",
-        },
-        props:{ },
-      };
-    }
-    let sessionID = sess.rows[0].id;
+//     if (!sess) {
+//       return {
+//         redirect: {
+//           permanent: false,
+//           destination: "/signin?from=/chapters",
+//         },
+//         props:{ },
+//       };
+//     }
+//     let sessionID = sess.rows[0].id;
 
-    // Makes a fetch request to get the user's chapter history
-    const baseURL = process.env.NODE_ENV === 'production' 
-    ? 'https://plotnotes.ai' 
-    : 'http://localhost:3000';
+//     // Makes a fetch request to get the user's chapter history
+//     const baseURL = process.env.NODE_ENV === 'production' 
+//     ? 'https://plotnotes.ai' 
+//     : 'http://localhost:3000';
 
-    const axiosInstance = axios.create({
-    baseURL: baseURL
-    });
+//     const axiosInstance = axios.create({
+//     baseURL: baseURL
+//     });
 
-    const response = await axiosInstance.get(`/api/chapterCmds`,
-            {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Cookie': `token=${sessionID}`
-                },
-            }
-        );
+//     const response = await axiosInstance.get(`/api/chapterCmds`,
+//             {
+//                 method: 'GET',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                     'Cookie': `sessionID=${sessionID}`
+//                 },
+//             }
+//         );
     
-    const chapterInfo = await response.data;
+//     const chapterInfo = await response.data;
 
-    // If the json has an error saying the messageID does not belong to the user, redirect to the home page
-    if (chapterInfo.error) {
-        console.log("chapterInfo error:", chapterInfo.error);
-        return {
-            redirect: {
-                permanent: false,
-                destination: `/`,
-            },
-            props:{ },
-        };
-    } else if (chapterInfo.response === 'no chapters') {
-        return {
-            props: { storyNames: [], messageIDs: [], chapters: [] },
-        };
-    }
+//     // If the json has an error saying the messageID does not belong to the user, redirect to the home page
+//     if (chapterInfo.error) {
+//         console.log("chapterInfo error:", chapterInfo.error);
+//         return {
+//             redirect: {
+//                 permanent: false,
+//                 destination: `/`,
+//             },
+//             props:{ },
+//         };
+//     } else if (chapterInfo.response === 'no chapters') {
+//         return {
+//             props: { storyNames: [], messageIDs: [], chapters: [] },
+//         };
+//     }
     
-    const storyNames = chapterInfo.storyNames;
-    const messageIDs = chapterInfo.messageIDs;
-    const chapters = chapterInfo.chapters;
+//     const storyNames = chapterInfo.storyNames;
+//     const messageIDs = chapterInfo.messageIDs;
+//     const chapters = chapterInfo.chapters;
 
-    return { props: { sessionID, storyNames, messageIDs, chapters } };
-}
+//     return { props: { sessionID, storyNames, messageIDs, chapters } };
+// }

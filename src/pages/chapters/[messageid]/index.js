@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, Spinner, IconButton } from '@primer/react';
 import Head from 'next/head'
-import cookies from 'next-cookies'
+import Cookies from 'js-cookie'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -33,7 +33,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Cookie': `token=${sessionID}`,
+                        'Cookie': `sessionID=${sessionID}`,
                     },
                     body: JSON.stringify({ messageid: messageid, prompt: prompt }),
                 }
@@ -68,7 +68,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Cookie': `token=${sessionID}`,
+                        'Cookie': `sessionID=${sessionID}`,
                     },
                     body: JSON.stringify({ prompt: prompt }),
                 }
@@ -257,7 +257,7 @@ async function deleteChapter(sessionID, messageid) {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cookie': `token=${sessionID}`,
+                    'Cookie': `sessionID=${sessionID}`,
                 },
             }
         );
@@ -289,7 +289,7 @@ async function saveEdit(story, sessionID, messageid) {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cookie': `token=${sessionID}`,
+                    'Cookie': `sessionID=${sessionID}`,
                 },
                 body: JSON.stringify({ messageid: messageid, story: story }),
             }
@@ -318,8 +318,8 @@ function getAxios() {
 
 export async function getServerSideProps(ctx) {
     const messageID = await ctx.query.messageid;
-    const c = cookies(ctx);
-    const sess = await loadSession(c.token);
+    const c = Cookies.get("sessionID");
+    const sess = await loadSession(c);
 
     if (!sess) {
       return {
@@ -339,7 +339,7 @@ export async function getServerSideProps(ctx) {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cookie': `token=${sessionID}`
+                    'Cookie': `sessionID=${sessionID}`
                 },
             }
         );

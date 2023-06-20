@@ -1,13 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
-import Cookies from 'cookies';
+import Cookies from 'js-cookie';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (req.method == "POST") {
         await addUser(req, res);
-    }
-    else if (req.method == "PUT") {
+    } else if (req.method == "PUT") {
         await logInUser(req, res);
     } else if (req.method == "DELETE") {
         await logOutUser(req, res);
@@ -16,8 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function logOutUser(req: NextApiRequest, res: NextApiResponse) {
     // Assumes the user has a cookie
-    const cookie = new Cookies(req, res);
-    const sessionId = cookie.get('token');
+    const sessionId = Cookies.get('sessionID');
     
     try {
         await query(
@@ -44,14 +42,20 @@ async function logInUser(req: NextApiRequest, res: NextApiResponse) {
             res.status(200).send({ error: 'password does not match' });
             return;
         }
+
+        // Checks to see if the user already has a session
+        const sessionQuery = await query(
+            `SELECT * FROM sessions WHERE userid = $1`,
+            [userId]
+        );
+
+        if (sessionQuery.rows.length != 0) {
+            const sessionId = (sessionQuery.rows[0] as any).id;
+            res.status(200).send({ sessionId: sessionId});
+            return;
+        }
+
         const sessionId = await createSession(`${userId}`);
-        const cookie = new Cookies(req, res);
-        
-        // Sets the user's cookie to expire the same day
-        cookie.set('token', sessionId, {
-            httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24,
-        });
 
         res.status(200).send({ sessionId: sessionId});
         return;
@@ -75,10 +79,9 @@ async function addUser(req: NextApiRequest, res: NextApiResponse) {
         if (usedGoogle) {
             const sessionId = await signInWithGoogle(username);
 
-            const cookie = new Cookies(req, res);
 
             // Sets the user's cookie to expire the same day
-            cookie.set('token', sessionId, {
+            Cookies.set('sessionID', sessionId, {
                 httpOnly: true,
                 maxAge: 1000 * 60 * 60 * 24,
             });
@@ -91,8 +94,7 @@ async function addUser(req: NextApiRequest, res: NextApiResponse) {
             }
             
             const sessionId = await signUp(username, password);
-            const cookie = new Cookies(req, res);
-            cookie.set('token', sessionId, {
+            Cookies.set('sessionID', sessionId, {
                 httpOnly: true,
                 maxAge: 1000 * 60 * 60 * 24,
             });

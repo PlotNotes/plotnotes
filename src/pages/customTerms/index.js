@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, IconButton, Spinner } from '@primer/react';
 import Head from 'next/head'
-import cookies from 'next-cookies'
+import Cookies from 'js-cookie'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -45,7 +45,7 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
                                 'Content-Type': 'application/json',
                             },
                             params: {
-                                token: sessionID,
+                                sessionID: sessionID,
                             },
                         }
                         );
@@ -63,7 +63,7 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `token=${sessionID}`,
+                'Cookie': `sessionID=${sessionID}`,
                 },
                 body: JSON.stringify({ term: term, context: context }),
             }
@@ -91,7 +91,7 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `token=${sessionID}`,
+                'Cookie': `sessionID=${sessionID}`,
                 'term': termName,
             },
         });
@@ -180,8 +180,8 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
 }
 
 export async function getServerSideProps(ctx) {
-    const c = cookies(ctx);
-    const sess = await loadSession(c.token);
+    const c = Cookies.get("sessionID");
+    const sess = await loadSession(c);
 
     if (!sess) {
       return {
@@ -207,7 +207,7 @@ export async function getServerSideProps(ctx) {
         {
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `token=${c.token}`,
+                'Cookie': `sessionID=${c}`,
             },
         }
     );

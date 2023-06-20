@@ -1,126 +1,114 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Heading, Header, Textarea, Button, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
-import Link from 'next/link'
-import Image from 'next/image'
-import cookies from 'next-cookies'
-import loadSession from 'src/pages/api/session'
+import Cookies from 'js-cookie'
 import Router, { useRouter } from 'next/router'
 import { LogoutButton } from '../signin';
 import { HomeButton, HeaderItem } from '../chapters';
 
-export default function Prompt({ sessionID }) {
+export default function Prompt() {
+
+    const [sessionID, setSessionID] = useState("");
 
     useEffect(() => {
-        const ws = new WebSocket('ws://localhost:8080');
-
-        ws.addEventListener('open', () => {
-          console.log('Connected to server');
+    const getSession = async () => {
+        const session = Cookies.get('sessionID');
+        const response = await fetch(`/api/session`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `sessionID=${session}`,
+        },
         });
-    
-        ws.addEventListener('message', (event) => {
-          console.log(`Received: ${event.data}`);
-        });
-    
-        // Return a cleanup function that will be called when the component is unmounted
-        return () => {
-          ws.close();
-        };
-      }, []);
 
-  const [prompt, setPrompt] = useState('');
-  const [story, setStory] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [buttonText, setButtonText] = useState('Copy');
-
-  const handleChange = (ev) => {
-    setPrompt(ev.target.value);
-  };
-
-  const handleShortStory = async (ev) => {
-    ev.preventDefault();
-    setIsGenerating(true);
-    try {
-        const response = await fetch('/api/jobs',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ prompt:prompt, method: 'shortStory' }),
-            }
-        );
-        
         if (response.status === 401) {
-            Router.push(`/signin?from=/prompt`);
-            return;
+        Router.push(`/signin?from=/prompt`);
+        return;
         }
 
-        // const storyInfo = await response.json();        
-        // let newStory = storyInfo.story.split('response: ')[0];
-        // let storyName = storyInfo.storyName.split('response: ')[0];
-        // setStory(newStory);
-        
-        // await fetch('/api/shortStoryCmds',
-        //     {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify({ sessionId: sessionID, 
-        //                                story: newStory, 
-        //                                storyName: storyName, 
-        //                                prompt: prompt, 
-        //                                iterationId: 0 }),
-        //     }
-        // );
-        setIsGenerating(false);
-    } catch(err) {
-        console.log('Error: ', err);
-    }
-  };
+        const data = await response.json();
+        setSessionID(data.sessionId);
+    };
 
-    const handleChapters = async (ev) => {
+    getSession();
+    }, []);
+
+    const [prompt, setPrompt] = useState('');
+    const [story, setStory] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [buttonText, setButtonText] = useState('Copy');
+
+    const handleChange = (ev) => {
+        setPrompt(ev.target.value);
+    };
+
+    const handleShortStory = async (ev) => {
         ev.preventDefault();
         setIsGenerating(true);
         try {
-            const response = await fetch('/api/prompt',
+            const response = await fetch('/api/jobs',
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Cookie': `sessionID=${sessionID}`,
                     },
-                    body: JSON.stringify({  prompt: prompt, 
-                                            shortStory: false }),
+                    body: JSON.stringify({ prompt:prompt, method: 'shortStory' }),
                 }
             );
-
+            
             if (response.status === 401) {
                 Router.push(`/signin?from=/prompt`);
                 return;
             }
 
-            const storyInfo = await response.json();
+            setIsGenerating(false);
+        } catch(err) {
+            console.log('Error: ', err);
+        }
+    };
+
+    const handleChapters = async (ev) => {
+        ev.preventDefault();
+        setIsGenerating(true);
+        try {
+            // const response = await fetch('/api/prompt',
+            //     {
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/json',
+            //         },
+            //         body: JSON.stringify({  prompt: prompt, 
+            //                                 shortStory: false }),
+            //     }
+            // );
+
+            // if (response.status === 401) {
+            //     Router.push(`/signin?from=/prompt`);
+            //     return;
+            // }
+
+            // const storyInfo = await response.json();
             
-            // The response is split into an array of chapters, and a story name
-            let chapter = storyInfo.chapter;
-            let storyName = storyInfo.storyName;
+            // // The response is split into an array of chapters, and a story name
+            // let chapter = storyInfo.chapter;
+            // let storyName = storyInfo.storyName;
 
-            setStory(chapter);
+            // setStory(chapter);
 
-            const insertChapter = await fetch('/api/chapterCmds',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({  sessionid: sessionID,
-                                            story: chapter,
-                                            storyName: storyName,
-                                            prompt: prompt,
-                    }),
-                }
-            );
+            // const insertChapter = await fetch('/api/chapterCmds',
+            //     {
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/json',
+            //         },
+            //         body: JSON.stringify({  sessionid: sessionID,
+            //                                 story: chapter,
+            //                                 storyName: storyName,
+            //                                 prompt: prompt,
+            //         }),
+            //     }
+            // );
             // const chapterInfo = await insertChapter.json();
             setIsGenerating(false);
         } catch(err) {
@@ -246,22 +234,4 @@ export default function Prompt({ sessionID }) {
         </Box>
     </div>
   );
-}
-
-export async function getServerSideProps(ctx) {
-    const c = cookies(ctx);
-    const sess = await loadSession(c.token);
-
-    if (!sess) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: "/signin?from=/prompt",
-        },
-        props:{ },
-      };
-    }
-    let sessionID = sess.rows[0].id;
-
-    return { props: { sessionID } };
 }

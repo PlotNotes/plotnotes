@@ -34,11 +34,11 @@ const getOpenAICompletion = async (content: string) => {
 
 export async function getStory (prompt: string, userid: string): Promise<{story: string, storyName: string}> {
   const context = await getContext(prompt, userid);
-
+  console.log("Context: " + context);
   const content = generateShortStoryPrompt(prompt, context, 'a short story');
-
+  console.log("Content: " + content);
   let completion = await getOpenAICompletion(content);
-
+  console.log("Completion: " + completion);
   // If the story is too short, continue the completion where it left off
   let tokens = tokenize(completion);
   while (tokens < 1000) {
@@ -47,6 +47,7 @@ export async function getStory (prompt: string, userid: string): Promise<{story:
     const newCompletion = await getOpenAICompletion(newContent);
     completion += ` ${newCompletion}`;
     tokens = tokenize(completion);
+    console.log("Tokens: " + tokens);
   }
 
   const storyName = await createStoryName(completion);

@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Router, { useRouter } from 'next/router'
 import { IconButton } from '@primer/react'
 import { MarkGithubIcon } from '@primer/octicons-react'
+import { useEffect } from 'react'
 
 export default function Home() {
 

@@ -3,7 +3,7 @@ import { Box, Heading, Header, Button, Textarea, Tooltip, IconButton } from '@pr
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import cookies from 'next-cookies'
+import Cookies from 'js-cookie'
 import loadSession from 'src/pages/api/session'
 import axios from 'axios';
 import { LogoutButton } from '../signin';
@@ -122,7 +122,7 @@ async function deleteStory(messageID, sessionID) {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cookie': `token=${sessionID}`,
+                    'Cookie': `sessionID=${sessionID}`,
                     'messageid': messageID,
                 },
             }
@@ -156,8 +156,8 @@ export const HomeButton = () => (
 )
 
 export async function getServerSideProps(ctx) {
-    const c = cookies(ctx);
-    const sess = await loadSession(c.token);
+    const c = Cookies.get("sessionID");
+    const sess = await loadSession(c);
 
     if (!sess) {
       return {
@@ -182,7 +182,7 @@ export async function getServerSideProps(ctx) {
     let historyQuery = await axiosInstance.get('/api/shortStoryCmds', {
     headers: {
         'Content-Type': 'application/json',
-        'Cookie': `token=${sessionID}`,
+        'Cookie': `sessionID=${sessionID}`,
     },
     });
 

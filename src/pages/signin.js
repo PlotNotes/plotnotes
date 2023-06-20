@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {useRouter} from 'next/router'
 import * as jwt from 'jsonwebtoken'
+import Cookies from 'js-cookie'
 
 export default function SignIn() {
     const router = useRouter()
@@ -46,12 +47,16 @@ export default function SignIn() {
             }
         });
 
-        const data = await response.text();
+        const data = await response.json();
+        console.log('data: ', data);
         if (data.includes('error')) {
             const error = JSON.parse(data);
             alert(error.error);
             return;
         }
+
+        const sessionID = data.sessionId;
+        Cookies.set('sessionID', sessionID);
 
         if (router.query.from !== undefined) 
             router.push(router.query.from) 
@@ -68,6 +73,10 @@ export default function SignIn() {
                 'Content-Type': 'application/json'
             }
         });
+        const data = await response.json();
+
+        const sessionID = data.sessionId;
+        Cookies.set('sessionID', sessionID);
 
         if (router.query.from !== undefined)
             router.push(router.query.from)
