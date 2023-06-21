@@ -7,6 +7,7 @@ import Image from 'next/image'
 import {useRouter} from 'next/router'
 import * as jwt from 'jsonwebtoken'
 import Cookies from 'js-cookie'
+import axios from 'axios';
 
 export default function SignIn() {
     const router = useRouter()
@@ -218,4 +219,25 @@ export function LogoutButton() {
                 </Button>
             </Header.Item>
     );
+}
+
+export async function getServerSideProps(ctx) {
+    // Loads the jobs api route so it connects the client and server until the session expires
+
+    const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
+    : 'http://localhost:3000';
+
+    const axiosInstance = axios.create({
+    baseURL: baseURL
+    });
+
+    await axiosInstance.get('/api/jobs', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
+    return {props: {}};
 }

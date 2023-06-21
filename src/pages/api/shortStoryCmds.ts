@@ -1,19 +1,22 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
 import { getStory } from './prompt';
+import { userLoggedIn } from './authchecks';
 
 export default async function insertStory(req: NextApiRequest, res: NextApiResponse) {
-    // const userid = await userLoggedIn(req, res);
+    const userid = await userLoggedIn(req, res);
 
-    // if (userid == "") {
-    //     res.status(401).send({ response: "Not logged in" });
-    //     return;
-    // }
+    if (userid == "") {
+        res.status(401).send({ response: "Not logged in" });
+        return;
+    }
+
+    if (req.method == "GET") {
+        await getRequest(req, res, userid);
+    }
 
     // if (req.method == "POST") {
     //     await postRequest(req, res, userid);
-    // } else if (req.method == "GET") {
-    //     await getRequest(req, res, userid);
     // } else if (req.method == "PUT") {
     //     await putRequest(req, res, userid);
     // } else if (req.method == "DELETE") {

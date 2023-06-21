@@ -27,8 +27,10 @@ export default function App({ Component, pageProps }: AppProps) {
 
       if (message.startsWith("story:")) {
         // Gets the story alert and removes the "story:" part and the messageid at the end
-        const storyAlert = message.split(":")[1];
-        const messageid = message.split(":")[3];
+        const storySplit = message.split(":");
+        console.log(`storySplit: ${storySplit}`)
+        const storyAlert = storySplit[1];
+        const messageid = storySplit[2];
         console.log(`messageid: ${messageid}`)
         alert(storyAlert);
       }
