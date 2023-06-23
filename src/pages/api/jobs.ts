@@ -19,7 +19,7 @@ shortStoryQueue.process(async (job) => {
     );
 
     const sessionid = (sessionidQuery.rows[0] as any).id;
-
+    console.log("Sessionid: " + sessionid);
     const { story, storyName } = await getStory(prompt, userid);
     console.log("Story: " + story);
     console.log("Story name: " + storyName);
@@ -48,8 +48,8 @@ shortStoryQueue.process(async (job) => {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (req.method == "GET") {
-        console.log("Connecting");
-        res.status(200).send({ response: "success" });
+        res.status(200).send({ queue: await shortStoryQueue.getJobs(["waiting", "active"]) });
+        return;
     }
 
     console.log("Creating job");

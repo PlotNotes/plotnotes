@@ -1,68 +1,17 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Box, Heading, Header, Button, Textarea, Tooltip, IconButton } from '@primer/react';
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import Cookies from 'js-cookie'
 import axios from 'axios';
 import { LogoutButton } from '../signin';
 import { TrashIcon } from '@primer/octicons-react'
 import Router from 'next/router'
+import loadSession from '../api/session';
 
-export default function History() {    
+export default function History({ sessionID, stories, storyNames, messageIDs}) {    
     // Upon loading the page, the user is presented with a list of their previous stories
     // Each story is displayed as a button that, when clicked, will display the story in a text area below the list
-
-    const [sessionID, setSessionID] = useState("");
-    const [stories, setStories] = useState([]);
-    const [storyNames, setStoryNames] = useState([]);
-    const [messageIDs, setMessageIDs] = useState([]);
-
-    useEffect(() => {
-        const getSession = async () => {
-            const session = Cookies.get('sessionID');
-            const response = await fetch(`/api/session`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Cookie': `sessionID=${session}`,
-                },
-            });
-
-            if (response.status === 401) {
-                Router.push(`/signin?from=/shortStories`);
-                return;
-            }
-
-            const data = await response.json();
-            setSessionID(data.sessionId);
-        };
-
-        const getStories = async () => {
-            const baseURL = process.env.NODE_ENV === 'production' 
-            ? 'https://plotnotes.ai' 
-            : 'http://localhost:3000';
-
-            const axiosInstance = axios.create({
-            baseURL: baseURL
-            });
-            
-            let historyQuery = await axiosInstance.get('/api/shortStoryCmds', {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-            const historyResponse = await historyQuery.data;
-
-            setStories(historyResponse.stories);
-            setStoryNames(historyResponse.titles);
-            setMessageIDs(historyResponse.messageIDs);
-        };
-
-        getSession();
-        getStories();
-    }, []);
 
     return (
         <div>
@@ -205,53 +154,52 @@ export const HomeButton = () => (
     </Header.Item>
 )
 
-// export async function getServerSideProps(ctx) {
-//     const c = Cookies.get("sessionID");
-//     const sess = await loadSession(c);
+export async function getServerSideProps(ctx) {
+    const sessionID = ctx.req.cookies.sessionID;
+    const isLoggedIn = await loadSession(sessionID);
 
-//     if (!sess) {
-//       return {
-//         redirect: {
-//           permanent: false,
-//           destination: "/signin?from=/shortStories",
-//         },
-//         props:{ },
-//       };
-//     }
-//     let sessionID = sess.rows[0].id;
+    if (!isLoggedIn) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/signin?from=/shortStories",
+        },
+        props:{ },
+      };
+    }
 
-//     const baseURL = process.env.NODE_ENV === 'production' 
-//     ? 'https://plotnotes.ai' 
-//     : 'http://localhost:3000';
+    const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
+    : 'http://localhost:3000';
 
-//     const axiosInstance = axios.create({
-//     baseURL: baseURL
-//     });
+    const axiosInstance = axios.create({
+    baseURL: baseURL
+    });
 
-//     // Then use axiosInstance instead of axios
-//     let historyQuery = await axiosInstance.get('/api/shortStoryCmds', {
-//     headers: {
-//         'Content-Type': 'application/json',
-//         'Cookie': `sessionID=${sessionID}`,
-//     },
-//     });
+    // Then use axiosInstance instead of axios
+    let historyQuery = await axiosInstance.get('/api/shortStoryCmds', {
+    headers: {
+        'Content-Type': 'application/json',
+        'Cookie': `sessionID=${sessionID}`,
+    },
+    });
 
-//     const historyResponse = await historyQuery.data;
+    const historyResponse = await historyQuery.data;
     
-//     let stories = historyResponse.stories;
-//     let prompts = historyResponse.prompts;
-//     let storyNames = historyResponse.titles;
-//     let messageIDs = historyResponse.messageIDs;
+    let stories = historyResponse.stories;
+    let prompts = historyResponse.prompts;
+    let storyNames = historyResponse.titles;
+    let messageIDs = historyResponse.messageIDs;
 
-//     // Checks the messageid array to see if there are any duplicates, if there are, then remove the duplicates from all arrays
-//     for (let i = 0; i < messageIDs.length; i++) {
-//         if (messageIDs.indexOf(messageIDs[i]) !== messageIDs.lastIndexOf(messageIDs[i])) {
-//             stories.splice(i, 1);
-//             prompts.splice(i, 1);
-//             storyNames.splice(i, 1);
-//             messageIDs.splice(i, 1);
-//         }
-//     }
+    // Checks the messageid array to see if there are any duplicates, if there are, then remove the duplicates from all arrays
+    for (let i = 0; i < messageIDs.length; i++) {
+        if (messageIDs.indexOf(messageIDs[i]) !== messageIDs.lastIndexOf(messageIDs[i])) {
+            stories.splice(i, 1);
+            prompts.splice(i, 1);
+            storyNames.splice(i, 1);
+            messageIDs.splice(i, 1);
+        }
+    }
 
-//     return { props: { sessionID, stories, prompts, storyNames, messageIDs } };
-// }
+    return { props: { sessionID, stories, prompts, storyNames, messageIDs } };
+}

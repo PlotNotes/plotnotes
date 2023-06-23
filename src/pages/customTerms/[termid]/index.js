@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, Tooltip } from '@primer/react';
 import Head from 'next/head'
-import Cookies from 'js-cookie'
 import loadSession from 'src/pages/api/session'
-import Router, { useRouter } from 'next/router'
-import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { LogoutButton } from '../../signin';
 import { HomeButton, HeaderItem } from '../../chapters';
 import axios from 'axios';
@@ -62,10 +60,10 @@ export default function TermContext({ sessionid, context, term }) {
 
 export async function getServerSideProps(ctx) {
     const termid = ctx.query.termid;
-    const c = Cookies.get("sessionID");
-    const sess = await loadSession(c);
+    const sessionID = ctx.req.cookies.sessionID;
+    const isLoggedIn = await loadSession(sessionID);
 
-    if (!sess) {
+    if (!isLoggedIn) {
       return {
         redirect: {
           permanent: false,
@@ -74,8 +72,6 @@ export async function getServerSideProps(ctx) {
         props:{ },
       };
     }
-
-    let sessionid = sess.rows[0].id; 
     
     const baseURL = process.env.NODE_ENV === 'production' 
     ? 'https://plotnotes.ai' 
@@ -89,7 +85,7 @@ export async function getServerSideProps(ctx) {
         {
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `sessionID=${c}`,
+                'Cookie': `sessionID=${sessionID}`,
             },
         }
     );

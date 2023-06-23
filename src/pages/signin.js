@@ -210,9 +210,11 @@ export function LogoutButton() {
                         await fetch('/api/sessionCmds', {
                             method: 'DELETE',
                             headers: {
-                                'Content-Type': 'application/json'
+                                'Content-Type': 'application/json',
+                                'Cookie': `sessionID=${Cookies.get('sessionID')}`
                             }
                         });
+                        Cookies.remove('sessionID');
                         router.push('/?loggedIn=false');
                     }}>
                     Logout

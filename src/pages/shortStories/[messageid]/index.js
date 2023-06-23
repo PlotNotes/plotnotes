@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, Spinner, IconButton } from '@primer/react';
 import Head from 'next/head'
-import Cookies from 'js-cookie'
 import Link from 'next/link'
 import loadSession from 'src/pages/api/session'
 import Router, { useRouter } from 'next/router'
@@ -296,10 +295,10 @@ async function saveEdit(story, sessionID, messageID) {
 
 export async function getServerSideProps(ctx) {
     const messageID = await ctx.query.messageid;
-    const c = Cookies.get("sessionID");
-    const sess = await loadSession(c);
+    const sessionID = ctx.req.cookies.sessionID;
+    const isLoggedIn = await loadSession(sessionID);
 
-    if (!sess) {
+    if (!isLoggedIn) {
       return {
         redirect: {
           permanent: false,
@@ -308,7 +307,6 @@ export async function getServerSideProps(ctx) {
         props:{ },
       };
     }
-    let sessionID = sess.rows[0].id;
 
     const baseURL = process.env.NODE_ENV === 'production' 
     ? 'https://plotnotes.ai' 

@@ -1,37 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, Spinner, Tooltip } from '@primer/react';
 import Head from 'next/head'
-import Cookies from 'js-cookie'
-import Router, { useRouter } from 'next/router'
+import Router from 'next/router'
 import { LogoutButton } from '../signin';
 import { HomeButton, HeaderItem } from '../chapters';
+import loadSession from '../api/session';
 
 export default function Prompt() {
-
-    const [sessionID, setSessionID] = useState("");
-
-    useEffect(() => {
-    const getSession = async () => {
-        const session = Cookies.get('sessionID');
-        const response = await fetch(`/api/session`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Cookie': `sessionID=${session}`,
-        },
-        });
-
-        if (response.status === 401) {
-        Router.push(`/signin?from=/prompt`);
-        return;
-        }
-
-        const data = await response.json();
-        setSessionID(data.sessionId);
-    };
-
-    getSession();
-    }, []);
 
     const [prompt, setPrompt] = useState('');
     const [story, setStory] = useState('');
@@ -128,7 +103,6 @@ export default function Prompt() {
     // This return function is called when the component is unmounted, ensuring that the timer is cleared to prevent potential issues
     return () => clearTimeout(timer);
   };
-
 
   // Displays a large, centered header prompting the user to type something into a text area below it
   // The text area has placeholder text that reads "Once upon a time...."
@@ -234,4 +208,24 @@ export default function Prompt() {
         </Box>
     </div>
   );
+}
+
+export async function getServerSideProps(ctx) {
+
+    const sessionID = ctx.req.cookies.sessionID;
+    console.log('Session ID: ', sessionID);
+    const isLoggedIn = await loadSession(sessionID);
+
+    if (!isLoggedIn) {
+        return {
+            redirect: {
+                destination: '/signin?from=/prompt',
+                permanent: false,
+            },
+        };
+    }
+
+    return {
+        props: {},
+    };
 }

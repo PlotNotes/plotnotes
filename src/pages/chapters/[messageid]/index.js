@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, Spinner, IconButton } from '@primer/react';
 import Head from 'next/head'
-import Cookies from 'js-cookie'
-import loadSession from 'src/pages/api/session'
+import loadSession from '../../api/session';
 import Router, { useRouter } from 'next/router'
 import Link from 'next/link'
-import axios from 'axios';
 import { HomeButton, HeaderItem } from '../index'
 import { LogoutButton } from '../../signin';
 import { TrashIcon } from '@primer/octicons-react'
+import axios from 'axios';
 
-export default function Page({ sessionID, chapters, storyNames, messageIDs }) {    
+export default function Page({ storyNames, messageIDs, chapters, sessionID }) {    
     const router = useRouter();
     const { messageid } = router.query;
 
@@ -107,6 +106,7 @@ export default function Page({ sessionID, chapters, storyNames, messageIDs }) {
         </Box>
     </Button>
     );  
+
 
     return (
         <div>
@@ -304,67 +304,58 @@ async function saveEdit(story, sessionID, messageid) {
     }
 }
 
-function getAxios() {
-    const baseURL = process.env.NODE_ENV === 'production' 
-    ? 'https://plotnotes.ai' 
-    : 'http://localhost:3000';
+export async function getServerSideProps(context) {
+    const sessionID = context.req.cookies.sessionID;
+    const isLoggedIn = await loadSession(sessionID);
+    const messageid = context.query.messageid;
 
-    const axiosInstance = axios.create({
-    baseURL: baseURL
-    });
-
-    return axiosInstance;
-}
-
-export async function getServerSideProps(ctx) {
-    const messageID = await ctx.query.messageid;
-    const c = Cookies.get("sessionID");
-    const sess = await loadSession(c);
-
-    if (!sess) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/signin?from=/chapters/${messageID}`,
-        },
-        props:{ },
-      };
-    }
-    let sessionID = sess.rows[0].id;   
-
-    const axiosInstance = getAxios();
-
-    const response = await axiosInstance.get(`/api/${messageID}/chapters`,
-            {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Cookie': `sessionID=${sessionID}`
-                },
-            }
-        );
-
-    const chapterInfo = await response.data;
-
-    // If the json has an error saying the messageID does not belong to the user, redirect to the home page
-    if (chapterInfo.error) {
-        console.log("chapterInfo error:", chapterInfo.error);
+    if (!isLoggedIn) {
         return {
             redirect: {
+                destination: `/signin?from=/chapters/${messageid}`,
                 permanent: false,
-                destination: `/`,
             },
-            props:{ },
-        };
-    } else if (chapterInfo.response === 'no chapters') {
-        return {
-            props: { sessionID, storyNames: [], messageIDs: [], chapters: [] },
         };
     }
 
-    const chapters = chapterInfo.chapters;
-    const storyNames = chapterInfo.storyNames;
-    const messageIDs = chapterInfo.messageIDs;
+     // Makes a fetch request to get the user's chapter history
+     const baseURL = process.env.NODE_ENV === 'production' 
+     ? 'https://plotnotes.ai' 
+     : 'http://localhost:3000';
+ 
+     const axiosInstance = axios.create({
+     baseURL: baseURL
+     });
 
-    return { props: { sessionID, storyNames, messageIDs, chapters } };
+    const response = await axiosInstance.get(`/api/${messageid}/chapters`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `sessionID=${sessionID}`,
+        },
+    });
+
+    if (response.status === 401) {
+        return {
+            redirect: {
+                destination: `/signin?from=/chapters/${messageid}`,
+                permanent: false,
+            },
+        };
+    }
+
+    const data = await response.data;
+
+    const storyNames = data.storyNames;
+    const messageIDs = data.messageIDs;
+    const chapters = data.chapters;
+
+    return {
+        props: {
+            storyNames,
+            messageIDs,
+            chapters,
+            sessionID,
+        },
+    };
 }

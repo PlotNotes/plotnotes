@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Router, { useRouter } from 'next/router'
 import { IconButton } from '@primer/react'
 import { MarkGithubIcon } from '@primer/octicons-react'
-import { useEffect } from 'react'
+import axios from 'axios'
 
 export default function Home() {
 
@@ -39,7 +39,7 @@ export default function Home() {
       );
     }
   }
-
+  QueueList();
   // Returns the home page of PlotNotes with a welcome message and displaying the logo above it
   // Adds a login button that redirects to the login page, located on the top right of the page
   return (
@@ -77,4 +77,26 @@ export default function Home() {
       </main>
     </div>
   )
+}
+
+
+export const QueueList = async () => {
+
+  const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://plotnotes.ai' 
+    : 'http://localhost:3000';
+
+  const axiosInstance = axios.create({
+    baseURL: baseURL,
+    withCredentials: true
+  });
+
+  const response = await axiosInstance.get('api/jobs', {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  const data = await response.data;
+  console.log(data);
 }

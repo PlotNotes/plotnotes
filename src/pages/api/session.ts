@@ -1,10 +1,9 @@
+import { NextApiRequest, NextApiResponse } from 'next'
 import { getSession, deleteExpiredSessions } from './sessionCmds'
 
 let deletingExpiredSessions = false
 
-export default async function loadSession(req, res) {
-
-  const sessionId = req.cookies.sessionID
+export default async function loadSession(sessionId: string) {
 
   if (!deletingExpiredSessions) {
     deletingExpiredSessions = true
@@ -13,10 +12,11 @@ export default async function loadSession(req, res) {
     }, 1000 * 60)
   }
   const session = await getSession(sessionId)
-
-  if (session.rows.length > 0) {
-    res.status(200).send({ sessionId: sessionId});
+  
+  if (session.rows.length == 0) {
+    return false
   } else {
-    res.status(401).send({ error: 'You must be signed in to view the protected content on this page.'});
+    return true
   }
+
 }

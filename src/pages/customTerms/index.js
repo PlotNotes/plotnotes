@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Heading, Header, Textarea, Button, IconButton, Spinner } from '@primer/react';
 import Head from 'next/head'
-import Cookies from 'js-cookie'
 import loadSession from 'src/pages/api/session'
-import Router, { useRouter } from 'next/router'
+import Router from 'next/router'
 import Link from 'next/link'
 import { LogoutButton } from '../signin';
 import { HomeButton, HeaderItem } from '../chapters';
@@ -180,10 +179,10 @@ export default function CustomTerms({ sessionID, terms, termIds, contexts }) {
 }
 
 export async function getServerSideProps(ctx) {
-    const c = Cookies.get("sessionID");
-    const sess = await loadSession(c);
+    const sessionID = ctx.req.cookies.sessionID;
+    const isLoggedIn = await loadSession(sessionID);
 
-    if (!sess) {
+    if (!isLoggedIn) {
       return {
         redirect: {
           permanent: false,
@@ -192,7 +191,6 @@ export async function getServerSideProps(ctx) {
         props:{ },
       };
     }
-    let sessionID = sess.rows[0].id; 
 
     // Gets all terms from the database that belongs to the user using axios
     const baseURL = process.env.NODE_ENV === 'production' 
@@ -207,7 +205,7 @@ export async function getServerSideProps(ctx) {
         {
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `sessionID=${c}`,
+                'Cookie': `sessionID=${sessionID}`,
             },
         }
     );

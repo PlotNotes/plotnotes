@@ -33,7 +33,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "src/pages/api/session.js",
+    "src/pages/api/session.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
