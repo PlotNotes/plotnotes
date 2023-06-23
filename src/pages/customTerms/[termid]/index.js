@@ -95,6 +95,6 @@ export async function getServerSideProps(ctx) {
     const term = data.term;
 
     return {
-        props: { sessionid, context, term },
+        props: { sessionID, context, term },
     };
 }

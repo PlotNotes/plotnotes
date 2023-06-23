@@ -73,45 +73,59 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: str
 }
 
 async function getRequest(req: NextApiRequest, res: NextApiResponse, userId: string) {
-
+    console.log("Getting stories");
     // Returns the stories, checking the iterationID and parentID to keep only the most recent version of each story
-    const stories = await updateStories(userId);
-    const prompts = await updatePrompts(stories);
-    const titles = await updateTitles(stories);
-    const messageIDs = await updateMessageIDs(stories);
-    
+    const { stories, prompts, titles, messageIDs } = await updateStories(userId);
 
     res.status(200).send({ stories: stories, prompts: prompts, titles: titles, messageIDs: messageIDs });
 }
 
 
-async function updateStories(userID: string): Promise<string[]> {
-    const storyQuery = await query(`SELECT (messageid) FROM shortstories WHERE parentid = 0 AND userid = $1`, [userID]);
+async function updateStories(userID: string) {
+    console.log("Updating stories");
 
-    // Loops through the stories and makes a query for a message whose parentID is the story's messageID, and replaces the story with the most recent version
-    let stories: string[] = [];
-    for (let i = 0; i < storyQuery.rows.length; i++) {
-        const storyID = (storyQuery.rows[i] as any).messageid;
+    // Gets all the stories that the user has written, and with the highest iterationID for each story
+    const storyQuery = await query(`WITH numbered_rows AS (
+        SELECT 
+            message,
+            prompt,
+            messageid,
+            title,
+            ROW_NUMBER() OVER(PARTITION BY seriesid ORDER BY iterationid DESC) as row_num
+        FROM 
+            shortstories
+        WHERE 
+            userid = $1
+    )
+    SELECT 
+        message,
+        prompt,
+        messageid,
+        title
+    FROM 
+        numbered_rows
+    WHERE 
+        row_num = 1;`, [userID]);
+    console.log("getting stories and prompts");
 
-        const childrenStoryQuery = await query(
-            `SELECT (message) FROM shortstories WHERE parentid = $1 ORDER BY iterationid DESC LIMIT 1`,
-            [storyID]
-        );
+    const stories = storyQuery.rows.map((row) => { 
+        return (row as any).message;
+    });
 
-        if (childrenStoryQuery.rows.length != 0) {
-            stories.push((childrenStoryQuery.rows[0] as any).message);
-            continue;
-        }
+    const prompts = storyQuery.rows.map((row) => {
+        return (row as any).prompt;
+    });
 
-        const parentStoryQuery = await query(
-            `SELECT (message) FROM shortstories WHERE messageid = $1`,
-            [storyID]
-        );
+    const messageIDs = storyQuery.rows.map((row) => {
+        return (row as any).messageid;
+    });
 
-        stories.push((parentStoryQuery.rows[0] as any).message);
-    }
-
-    return stories;
+    const titles = storyQuery.rows.map((row) => {
+        return (row as any).title;
+    });
+    
+    // returns all the stories, prompts, titles, and messageIDs
+    return { stories: stories, prompts: prompts, titles: titles, messageIDs: messageIDs };
 }
 
 async function updatePrompts(stories: string[]): Promise<string[]> {
@@ -133,44 +147,6 @@ async function updatePrompts(stories: string[]): Promise<string[]> {
     return prompts;
 }
 
-async function updateTitles(stories: string[]): Promise<string[]> {
-
-    // For each story in stories, get the title from the database and add it to the titles array
-    let titles: string[] = [];
-
-    for (let i = 0; i < stories.length; i++) {
-        const story = stories[i];
-
-        const titleQuery = await query(
-            `SELECT (title) FROM shortstories WHERE message = $1`,
-            [story]
-        );
-
-        titles.push((titleQuery.rows[0] as any).title);
-    }
-
-    return titles;
-}
-
-async function updateMessageIDs(stories: string[]): Promise<string[]> {
-
-    // For each story in stories, get the messageID from the database and add it to the messageIDs array
-    let messageIDs: string[] = [];
-
-    for (let i = 0; i < stories.length; i++) {
-        const story = stories[i];
-
-        const messageIDQuery = await query(
-            `SELECT (messageid) FROM shortstories WHERE message = $1`,
-            [story]
-        );
-
-        messageIDs.push((messageIDQuery.rows[0] as any).messageid);
-    }
-
-    return messageIDs;
-}
-
 async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
     const { story, storyName, prompt, iterationId } = req.body;
     try {
@@ -186,17 +162,3 @@ async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: st
         throw err;
     }        
 }
-
-// export async function getStory(storyID: string): Promise<string> {
-//     try {
-//         const storyQuery = await query(
-//             `SELECT (story) FROM stories WHERE id = $1`,
-//             [storyID]
-//         );
-//         const story = (storyQuery.rows[0] as any).story;
-//         return story;
-//     } catch (err) {
-//         console.error(err);
-//         throw err;
-//     }
-// }
