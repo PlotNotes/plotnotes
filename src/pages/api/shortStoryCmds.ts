@@ -13,21 +13,9 @@ export default async function insertStory(req: NextApiRequest, res: NextApiRespo
 
     if (req.method == "GET") {
         await getRequest(req, res, userid);
+    } else if (req.method == "DELETE") {
+        await deleteRequest(req, res, userid);
     }
-
-    // if (req.method == "POST") {
-    //     await postRequest(req, res, userid);
-    // } else if (req.method == "PUT") {
-    //     await putRequest(req, res, userid);
-    // } else if (req.method == "DELETE") {
-    //     await deleteRequest(req, res, userid);
-    // }
-}
-
-export async function generateShortStory(prompt: string, userid: string) {
-
-    const { story, storyName } = await getStory(prompt, userid);
-
 }
 
 async function deleteRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
@@ -75,14 +63,13 @@ async function putRequest(req: NextApiRequest, res: NextApiResponse, userid: str
 async function getRequest(req: NextApiRequest, res: NextApiResponse, userId: string) {
     console.log("Getting stories");
     // Returns the stories, checking the iterationID and parentID to keep only the most recent version of each story
-    const { stories, prompts, titles, messageIDs } = await updateStories(userId);
+    const { stories, prompts, titles, messageIDs } = await getStories(userId);
 
     res.status(200).send({ stories: stories, prompts: prompts, titles: titles, messageIDs: messageIDs });
 }
 
 
-async function updateStories(userID: string) {
-    console.log("Updating stories");
+async function getStories(userID: string) {
 
     // Gets all the stories that the user has written, and with the highest iterationID for each story
     const storyQuery = await query(`WITH numbered_rows AS (
@@ -106,59 +93,19 @@ async function updateStories(userID: string) {
         numbered_rows
     WHERE 
         row_num = 1;`, [userID]);
-    console.log("getting stories and prompts");
 
-    const stories = storyQuery.rows.map((row) => { 
-        return (row as any).message;
-    });
+    let stories: string[] = [];
+    let prompts: string[] = [];
+    let messageIDs: string[] = [];
+    let titles: string[] = [];
 
-    const prompts = storyQuery.rows.map((row) => {
-        return (row as any).prompt;
-    });
-
-    const messageIDs = storyQuery.rows.map((row) => {
-        return (row as any).messageid;
-    });
-
-    const titles = storyQuery.rows.map((row) => {
-        return (row as any).title;
+    storyQuery.rows.forEach((row: any) => {
+        stories.push(row.message);
+        prompts.push(row.prompt);
+        messageIDs.push(row.messageid);
+        titles.push(row.title);
     });
     
     // returns all the stories, prompts, titles, and messageIDs
-    return { stories: stories, prompts: prompts, titles: titles, messageIDs: messageIDs };
-}
-
-async function updatePrompts(stories: string[]): Promise<string[]> {
-
-    // For each story in stories, get the prompt from the database and add it to the prompts array
-    let prompts: string[] = [];
-
-    for (let i = 0; i < stories.length; i++) {
-        const story = stories[i];
-
-        const promptQuery = await query(
-            `SELECT (prompt) FROM shortstories WHERE message = $1`,
-            [story]
-        );
-
-        prompts.push((promptQuery.rows[0] as any).prompt);
-    }
-
-    return prompts;
-}
-
-async function postRequest(req: NextApiRequest, res: NextApiResponse, userid: string) {
-    const { story, storyName, prompt, iterationId } = req.body;
-    try {
-
-        const storyIdQuery = await query(
-            `INSERT INTO shortstories (iterationid, userid, message, prompt, title, parentid) VALUES ($1, $2, $3, $4, $5, $6)`,
-            [iterationId, userid, story, prompt, storyName, 0]
-        );
-
-        res.status(200).send({ response: "success" });
-    } catch (err) {
-        console.error(err);
-        throw err;
-    }        
+    return { stories, prompts, titles, messageIDs };
 }

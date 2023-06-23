@@ -6,7 +6,7 @@ import { LogoutButton } from '../signin';
 import { HomeButton, HeaderItem } from '../chapters';
 import loadSession from '../api/session';
 
-export default function Prompt() {
+export default function Prompt({sessionID}) {
 
     const [prompt, setPrompt] = useState('');
     const [story, setStory] = useState('');
@@ -47,44 +47,19 @@ export default function Prompt() {
         ev.preventDefault();
         setIsGenerating(true);
         try {
-            // const response = await fetch('/api/prompt',
-            //     {
-            //         method: 'POST',
-            //         headers: {
-            //             'Content-Type': 'application/json',
-            //         },
-            //         body: JSON.stringify({  prompt: prompt, 
-            //                                 shortStory: false }),
-            //     }
-            // );
+            const response = await fetch('/api/jobs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cookie': `sessionID=${sessionID}`,
+                },
+                body: JSON.stringify({ prompt: prompt, method: 'chapter' }),
+            });
 
-            // if (response.status === 401) {
-            //     Router.push(`/signin?from=/prompt`);
-            //     return;
-            // }
-
-            // const storyInfo = await response.json();
-            
-            // // The response is split into an array of chapters, and a story name
-            // let chapter = storyInfo.chapter;
-            // let storyName = storyInfo.storyName;
-
-            // setStory(chapter);
-
-            // const insertChapter = await fetch('/api/chapterCmds',
-            //     {
-            //         method: 'POST',
-            //         headers: {
-            //             'Content-Type': 'application/json',
-            //         },
-            //         body: JSON.stringify({  sessionid: sessionID,
-            //                                 story: chapter,
-            //                                 storyName: storyName,
-            //                                 prompt: prompt,
-            //         }),
-            //     }
-            // );
-            // const chapterInfo = await insertChapter.json();
+            if (response.status === 401) {
+                Router.push(`/signin?from=/prompt`);
+                return;
+            }
             setIsGenerating(false);
         } catch(err) {
             console.log('Error: ', err);
@@ -226,6 +201,6 @@ export async function getServerSideProps(ctx) {
     }
 
     return {
-        props: {},
+        props: {sessionID},
     };
 }

@@ -55,6 +55,27 @@ export async function getStory (prompt: string, userid: string): Promise<{story:
   return {story: completion, storyName};
 };
 
+
+export async function getChapter(prompt: string, userid: string): Promise<{chapter: string, storyName: string}> {
+  const context = await getContext(prompt, userid);
+  const content = generateChapterPrompt(prompt, context, 'the first chapter of a story');
+  let completion = await getOpenAICompletion(content);
+
+  // If the story is too short, continue the completion where it left off
+  let tokens = tokenize(completion);
+  while (tokens < 1000) {
+    const summary = await summarize(completion);
+    const newContent = generateContinuePrompt(prompt, context, summary);
+    const newCompletion = await getOpenAICompletion(newContent);
+    completion += ` ${newCompletion}`;
+    tokens = tokenize(completion);
+  }
+
+  const storyName = await createStoryName(completion);
+
+  return {chapter: completion, storyName};
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const userid = await userLoggedIn(req, res);
 
